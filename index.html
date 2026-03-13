@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>작업허가서</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, 'Malgun Gothic', sans-serif;
+    background: #f0f4f8;
+    padding: 16px;
+    min-height: 100vh;
+  }
+
+  /* 상단 타이틀 */
+  .title {
+    text-align: center;
+    font-size: 18px;
+    font-weight: bold;
+    color: #1a5276;
+    margin-bottom: 16px;
+    padding: 12px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  }
+  .title span { font-size: 22px; }
+
+  /* 사진 버튼 영역 */
+  .photo-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .photo-btn {
+    flex: 1;
+    display: block;
+    text-align: center;
+    text-decoration: none;
+    padding: 14px 8px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: bold;
+    color: white;
+    background: linear-gradient(135deg, #2e75b6, #1a5276);
+    box-shadow: 0 3px 8px rgba(46,117,182,0.3);
+    transition: opacity 0.1s;
+  }
+  .photo-btn:active { opacity: 0.75; }
+  .photo-btn .icon { font-size: 22px; display: block; margin-bottom: 4px; }
+
+  /* 결과 카드 */
+  .section-label {
+    font-size: 12px;
+    color: #888;
+    font-weight: bold;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    padding-left: 4px;
+  }
+  .card {
+    background: white;
+    border-radius: 12px;
+    padding: 0;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.07);
+    overflow: hidden;
+  }
+  .row {
+    display: flex;
+    align-items: center;
+    padding: 13px 16px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .row:last-child { border-bottom: none; }
+  .row-label {
+    font-size: 12px;
+    color: #888;
+    width: 72px;
+    flex-shrink: 0;
+  }
+  .row-value {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1c1c1e;
+    flex: 1;
+    word-break: break-all;
+  }
+  .row-value.empty { color: #ccc; font-weight: normal; font-style: italic; }
+  .copy-btn {
+    background: #e8f1fb;
+    color: #2e75b6;
+    border: none;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    flex-shrink: 0;
+    margin-left: 8px;
+    transition: background 0.1s;
+  }
+  .copy-btn:active { background: #2e75b6; color: white; }
+
+  /* 복사 완료 토스트 */
+  .toast {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: rgba(0,0,0,0.75);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 14px;
+    opacity: 0;
+    transition: all 0.3s;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* 전체복사 버튼 */
+  .copy-all-btn {
+    width: 100%;
+    padding: 13px;
+    background: #1a5276;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-bottom: 20px;
+    box-shadow: 0 3px 8px rgba(26,82,118,0.3);
+  }
+  .copy-all-btn:active { opacity: 0.8; }
+
+  /* 앱 링크 버튼 */
+  .app-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .app-btn {
+    flex: 1;
+    display: block;
+    text-align: center;
+    text-decoration: none;
+    padding: 13px 6px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: bold;
+    color: white;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+    transition: opacity 0.1s;
+  }
+  .app-btn:active { opacity: 0.75; }
+  .app-btn .icon { font-size: 20px; display: block; margin-bottom: 3px; }
+  .btn-safety { background: linear-gradient(135deg, #c0392b, #922b21); }
+  .btn-kakao  { background: linear-gradient(135deg, #f9e000, #e6c800); color: #3c1e1e; }
+  .btn-band   { background: linear-gradient(135deg, #00c73c, #009e30); }
+</style>
+</head>
+<body>
+
+<div class="title">
+  <span>📋</span> 작업허가서 분석
+</div>
+
+<!-- 사진 버튼 -->
+<div class="photo-buttons">
+  <a class="photo-btn" href="shortcuts://run-shortcut?name=안전보건복붙&input=사진찍기">
+    <span class="icon">📷</span>사진 찍기
+  </a>
+  <a class="photo-btn" href="shortcuts://run-shortcut?name=안전보건복붙&input=사진고르기">
+    <span class="icon">🖼️</span>사진 가져오기
+  </a>
+</div>
+
+<!-- 결과 영역 -->
+<div class="section-label">분석 결과</div>
+<div class="card">
+  <div class="row">
+    <span class="row-label">허가번호</span>
+    <span class="row-value" id="v-permit">허가번호</span>
+    <button class="copy-btn" onclick="copyVal('v-permit', '허가번호')">복사</button>
+  </div>
+  <div class="row">
+    <span class="row-label">오더번호</span>
+    <span class="row-value" id="v-order">오더번호</span>
+    <button class="copy-btn" onclick="copyVal('v-order', '오더번호')">복사</button>
+  </div>
+  <div class="row">
+    <span class="row-label">작업명</span>
+    <span class="row-value" id="v-task">작업명</span>
+    <button class="copy-btn" onclick="copyVal('v-task', '작업명')">복사</button>
+  </div>
+  <div class="row">
+    <span class="row-label">작업일</span>
+    <span class="row-value" id="v-date">작업일</span>
+    <button class="copy-btn" onclick="copyVal('v-date', '작업일')">복사</button>
+  </div>
+  <div class="row">
+    <span class="row-label">작업인원</span>
+    <span class="row-value" id="v-people">작업인원</span>
+    <button class="copy-btn" onclick="copyVal('v-people', '작업인원')">복사</button>
+  </div>
+</div>
+
+<!-- 전체 복사 -->
+<button class="copy-all-btn" onclick="copyAll()">📋 전체 내용 복사</button>
+
+<!-- 앱 링크 -->
+<div class="section-label">바로가기</div>
+<div class="app-buttons">
+  <a class="app-btn btn-safety" href="https://sahps.kr/safety/workpermitreg/">
+    <span class="icon">🛡️</span>안전보건
+  </a>
+  <a class="app-btn btn-kakao" href="kakaotalk://">
+    <span class="icon">💬</span>카카오톡
+  </a>
+  <a class="app-btn btn-band" href="bandapp://">
+    <span class="icon">📣</span>네이버밴드
+  </a>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // 빈 값 처리
+  document.querySelectorAll('.row-value').forEach(el => {
+    if (el.textContent.startsWith('{{') || el.textContent.trim() === '') {
+      el.textContent = '—';
+      el.classList.add('empty');
+    }
+  });
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 1800);
+  }
+
+  function copyVal(id, label) {
+    const val = document.getElementById(id).textContent;
+    if (val === '—') { showToast('값이 없습니다'); return; }
+    navigator.clipboard.writeText(val).then(() => {
+      showToast(label + ' 복사 완료');
+    }).catch(() => {
+      // fallback
+      const ta = document.createElement('textarea');
+      ta.value = val;
+      document.body.appendChild(ta);
+      ta.select(); document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast(label + ' 복사 완료');
+    });
+  }
+
+  function copyAll() {
+    const fields = [
+      ['허가번호', 'v-permit'],
+      ['오더번호', 'v-order'],
+      ['작업명',   'v-task'],
+      ['작업일',   'v-date'],
+      ['작업인원', 'v-people'],
+    ];
+    const text = fields
+      .map(([label, id]) => `${label} : ${document.getElementById(id).textContent}`)
+      .join('\n');
+    navigator.clipboard.writeText(text).then(() => {
+      showToast('전체 내용 복사 완료');
+    }).catch(() => {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select(); document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast('전체 내용 복사 완료');
+    });
+  }
+</script>
+</body>
+</html>
