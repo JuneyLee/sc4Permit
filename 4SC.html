@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>작업허가서</title>
+<title>작업허가서 (아이폰)</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -23,14 +23,35 @@
     border-radius: 12px;
     box-shadow: 0 2px 6px rgba(0,0,0,0.08);
   }
-  .title span { font-size: 22px; }
+
+  /* 단축어 다운로드 배너 */
+  .shortcut-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(135deg, #6c3483, #8e44ad);
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 3px 8px rgba(142,68,173,0.3);
+    text-decoration: none;
+  }
+  .shortcut-banner .banner-text { color: white; }
+  .shortcut-banner .banner-title { font-size: 14px; font-weight: bold; }
+  .shortcut-banner .banner-sub { font-size: 11px; opacity: 0.85; margin-top: 2px; }
+  .shortcut-banner .banner-btn {
+    background: white;
+    color: #6c3483;
+    font-size: 13px;
+    font-weight: bold;
+    padding: 7px 14px;
+    border-radius: 20px;
+    white-space: nowrap;
+    margin-left: 12px;
+  }
 
   /* 사진 버튼 */
-  .photo-buttons {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-  }
+  .photo-buttons { display: flex; gap: 10px; margin-bottom: 20px; }
   .photo-btn {
     flex: 1;
     display: block;
@@ -41,125 +62,79 @@
     font-size: 15px;
     font-weight: bold;
     color: white;
-    background: linear-gradient(135deg, #2e75b6, #1a5276);
-    box-shadow: 0 3px 8px rgba(46,117,182,0.3);
+    background: linear-gradient(135deg, #e67e22, #ca6f1e);
+    box-shadow: 0 3px 8px rgba(230,126,34,0.35);
   }
   .photo-btn:active { opacity: 0.75; }
   .photo-btn .icon { font-size: 22px; display: block; margin-bottom: 4px; }
 
   /* 결과 카드 */
-  .section-label {
-    font-size: 12px;
-    color: #888;
-    font-weight: bold;
-    letter-spacing: 1px;
-    margin-bottom: 8px;
-    padding-left: 4px;
-  }
-  .card {
-    background: white;
-    border-radius: 12px;
-    margin-bottom: 10px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.07);
-    overflow: hidden;
-  }
-  .row {
-    display: flex;
-    align-items: center;
-    padding: 13px 16px;
-    border-bottom: 1px solid #f0f0f0;
-  }
+  .section-label { font-size: 12px; color: #888; font-weight: bold; letter-spacing: 1px; margin-bottom: 8px; padding-left: 4px; }
+  .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .section-header .section-label { margin-bottom: 0; }
+  .section-link { font-size: 12px; color: #2e75b6; font-weight: bold; text-decoration: none; }
+
+  .card { background: white; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.07); overflow: hidden; }
+  .row { display: flex; align-items: center; padding: 13px 16px; border-bottom: 1px solid #f0f0f0; }
   .row:last-child { border-bottom: none; }
-  .row-label {
-    font-size: 12px;
-    color: #888;
-    width: 72px;
-    flex-shrink: 0;
-  }
-  .row-value {
-    font-size: 15px;
-    font-weight: 600;
-    color: #1c1c1e;
-    flex: 1;
-    word-break: break-all;
-  }
+  .row-label { font-size: 12px; color: #888; width: 72px; flex-shrink: 0; }
+  .row-value { font-size: 15px; font-weight: 600; color: #1c1c1e; flex: 1; word-break: break-all; }
   .row-value.empty { color: #ccc; font-weight: normal; font-style: italic; }
   .copy-btn {
-    background: #e8f1fb;
-    color: #2e75b6;
-    border: none;
-    border-radius: 8px;
-    padding: 6px 12px;
-    font-size: 13px;
-    font-weight: bold;
-    cursor: pointer;
-    flex-shrink: 0;
-    margin-left: 8px;
+    background: #e8f1fb; color: #2e75b6; border: none; border-radius: 8px;
+    padding: 6px 12px; font-size: 13px; font-weight: bold; cursor: pointer;
+    flex-shrink: 0; margin-left: 8px;
   }
   .copy-btn:active { background: #2e75b6; color: white; }
 
   /* 전체복사 */
   .copy-all-btn {
-    width: 100%;
-    padding: 13px;
-    background: #1a5276;
-    color: white;
-    border: none;
-    border-radius: 12px;
-    font-size: 15px;
-    font-weight: bold;
-    cursor: pointer;
+    width: 100%; padding: 13px;
+    background: linear-gradient(135deg, #d35400, #b94600);
+    color: white; border: none; border-radius: 12px;
+    font-size: 15px; font-weight: bold; cursor: pointer;
     margin-bottom: 20px;
-    box-shadow: 0 3px 8px rgba(26,82,118,0.3);
+    box-shadow: 0 3px 8px rgba(211,84,0,0.35);
   }
   .copy-all-btn:active { opacity: 0.8; }
 
   /* 앱 링크 */
-  .app-buttons {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 16px;
-  }
+  .app-buttons { display: flex; gap: 10px; margin-bottom: 16px; }
   .app-btn {
-    flex: 1;
-    display: block;
-    text-align: center;
-    text-decoration: none;
-    padding: 13px 6px;
-    border-radius: 12px;
-    font-size: 13px;
-    font-weight: bold;
-    color: white;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+    flex: 1; display: block; text-align: center; text-decoration: none;
+    padding: 13px 6px; border-radius: 12px; font-size: 13px; font-weight: bold;
+    color: white; box-shadow: 0 3px 8px rgba(0,0,0,0.15);
   }
   .app-btn:active { opacity: 0.75; }
   .app-btn .icon { font-size: 20px; display: block; margin-bottom: 3px; }
-  .btn-safety { background: linear-gradient(135deg, #c0392b, #922b21); }
+  .btn-safety { background: linear-gradient(135deg, #1e8449, #196f3d); }
   .btn-kakao  { background: linear-gradient(135deg, #f9e000, #e6c800); color: #3c1e1e; }
   .btn-band   { background: linear-gradient(135deg, #00c73c, #009e30); }
 
   /* 토스트 */
   .toast {
-    position: fixed;
-    bottom: 80px;
-    left: 50%;
+    position: fixed; bottom: 80px; left: 50%;
     transform: translateX(-50%) translateY(20px);
-    background: rgba(0,0,0,0.75);
-    color: white;
-    padding: 10px 20px;
-    border-radius: 20px;
-    font-size: 14px;
-    opacity: 0;
-    transition: all 0.3s;
-    pointer-events: none;
-    white-space: nowrap;
+    background: rgba(0,0,0,0.75); color: white;
+    padding: 10px 20px; border-radius: 20px; font-size: 14px;
+    opacity: 0; transition: all 0.3s; pointer-events: none;
+    white-space: nowrap; z-index: 999;
   }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
 </head>
 <body>
 
-<div class="title"><span>📋</span> 작업허가서 분석</div>
+<div class="title">📋 작업허가서 분석 <span style="font-size:13px;color:#8e44ad;font-weight:normal;">iPhone</span></div>
+
+<!-- 단축어 다운로드 배너 -->
+<a class="shortcut-banner" href="https://www.icloud.com/shortcuts/4d78469de9d643b2804b9e1a5d947aff">
+  <div class="banner-text">
+    <div class="banner-title">📲 단축어 설치</div>
+    <div class="banner-sub">탭하면 단축어 앱으로 바로 설치됩니다</div>
+  </div>
+  <div class="banner-btn">설치하기</div>
+</a>
 
 <!-- 사진 버튼 -->
 <div class="photo-buttons">
@@ -176,27 +151,27 @@
 <div class="card">
   <div class="row">
     <span class="row-label">허가번호</span>
-    <span class="row-value" id="v-permit">—</span>
+    <span class="row-value empty" id="v-permit">—</span>
     <button class="copy-btn" onclick="copyVal('v-permit','허가번호')">복사</button>
   </div>
   <div class="row">
     <span class="row-label">오더번호</span>
-    <span class="row-value" id="v-order">—</span>
+    <span class="row-value empty" id="v-order">—</span>
     <button class="copy-btn" onclick="copyVal('v-order','오더번호')">복사</button>
   </div>
   <div class="row">
     <span class="row-label">작업명</span>
-    <span class="row-value" id="v-task">—</span>
+    <span class="row-value empty" id="v-task">—</span>
     <button class="copy-btn" onclick="copyVal('v-task','작업명')">복사</button>
   </div>
   <div class="row">
     <span class="row-label">작업일</span>
-    <span class="row-value" id="v-date">—</span>
+    <span class="row-value empty" id="v-date">—</span>
     <button class="copy-btn" onclick="copyVal('v-date','작업일')">복사</button>
   </div>
   <div class="row">
     <span class="row-label">작업인원</span>
-    <span class="row-value" id="v-people">—</span>
+    <span class="row-value empty" id="v-people">—</span>
     <button class="copy-btn" onclick="copyVal('v-people','작업인원')">복사</button>
   </div>
 </div>
@@ -204,7 +179,10 @@
 <button class="copy-all-btn" onclick="copyAll()">📋 전체 내용 복사</button>
 
 <!-- 앱 바로가기 -->
-<div class="section-label">바로가기</div>
+<div class="section-header">
+  <span class="section-label">바로가기</span>
+  <a class="section-link" href="https://juneylee.github.io/sc4Permit/">일반 버전</a>
+</div>
 <div class="app-buttons">
   <a class="app-btn btn-safety" href="https://sahps.kr/safety/workpermitreg/">
     <span class="icon">🛡️</span>안전보건
@@ -220,13 +198,12 @@
 <div class="toast" id="toast"></div>
 
 <script>
-  // URL 파라미터 읽기
   const params = new URLSearchParams(window.location.search);
 
   function setVal(id, key) {
     const el = document.getElementById(id);
     const val = params.get(key);
-    if (val && val.trim() !== '') {
+    if (val && val !== 'null' && val.trim() !== '') {
       el.textContent = decodeURIComponent(val);
       el.classList.remove('empty');
     } else {
@@ -253,14 +230,7 @@
     if (val === '—') { showToast('값이 없습니다'); return; }
     navigator.clipboard.writeText(val)
       .then(() => showToast(label + ' 복사 완료'))
-      .catch(() => {
-        const ta = document.createElement('textarea');
-        ta.value = val;
-        document.body.appendChild(ta);
-        ta.select(); document.execCommand('copy');
-        document.body.removeChild(ta);
-        showToast(label + ' 복사 완료');
-      });
+      .catch(() => { fallbackCopy(val); showToast(label + ' 복사 완료'); });
   }
 
   function copyAll() {
@@ -273,14 +243,16 @@
     ].join('\n');
     navigator.clipboard.writeText(lines)
       .then(() => showToast('전체 복사 완료'))
-      .catch(() => {
-        const ta = document.createElement('textarea');
-        ta.value = lines;
-        document.body.appendChild(ta);
-        ta.select(); document.execCommand('copy');
-        document.body.removeChild(ta);
-        showToast('전체 복사 완료');
-      });
+      .catch(() => { fallbackCopy(lines); showToast('전체 복사 완료'); });
+  }
+
+  function fallbackCopy(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
   }
 </script>
 </body>
