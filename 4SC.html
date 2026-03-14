@@ -4,122 +4,60 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>작업허가서 (아이폰)</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: -apple-system, 'Malgun Gothic', sans-serif;
-    background: #f0f4f8;
-    padding: 16px;
-    min-height: 100vh;
-  }
-  .title {
-    text-align: center;
-    font-size: 18px;
-    font-weight: bold;
-    color: #1a5276;
-    margin-bottom: 16px;
-    padding: 12px;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-  }
+  body { font-family: -apple-system, 'Malgun Gothic', sans-serif; background: #f0f4f8; padding: 16px; min-height: 100vh; }
+  .title { text-align: center; font-size: 18px; font-weight: bold; color: #1a5276; margin-bottom: 16px; padding: 12px; background: white; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
 
-  /* 단축어 다운로드 배너 */
-  .shortcut-banner {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: linear-gradient(135deg, #6c3483, #8e44ad);
-    border-radius: 12px;
-    padding: 12px 16px;
-    margin-bottom: 16px;
-    box-shadow: 0 3px 8px rgba(142,68,173,0.3);
-    text-decoration: none;
-  }
+  /* 단축어 배너 */
+  .shortcut-banner { display: flex; align-items: center; justify-content: space-between; background: linear-gradient(135deg, #6c3483, #8e44ad); border-radius: 12px; padding: 12px 16px; margin-bottom: 16px; box-shadow: 0 3px 8px rgba(142,68,173,0.3); text-decoration: none; }
   .shortcut-banner .banner-text { color: white; }
   .shortcut-banner .banner-title { font-size: 14px; font-weight: bold; }
   .shortcut-banner .banner-sub { font-size: 11px; opacity: 0.85; margin-top: 2px; }
-  .shortcut-banner .banner-btn {
-    background: white;
-    color: #6c3483;
-    font-size: 13px;
-    font-weight: bold;
-    padding: 7px 14px;
-    border-radius: 20px;
-    white-space: nowrap;
-    margin-left: 12px;
-  }
+  .shortcut-banner .banner-btn { background: white; color: #6c3483; font-size: 13px; font-weight: bold; padding: 7px 14px; border-radius: 20px; white-space: nowrap; margin-left: 12px; }
 
-  /* 사진 버튼 */
-  .photo-buttons { display: flex; gap: 10px; margin-bottom: 20px; }
-  .photo-btn {
-    flex: 1;
-    display: block;
-    text-align: center;
-    text-decoration: none;
-    padding: 14px 8px;
-    border-radius: 12px;
-    font-size: 15px;
-    font-weight: bold;
-    color: white;
-    background: linear-gradient(135deg, #e67e22, #ca6f1e);
-    box-shadow: 0 3px 8px rgba(230,126,34,0.35);
-  }
-  .photo-btn:active { opacity: 0.75; }
-  .photo-btn .icon { font-size: 22px; display: block; margin-bottom: 4px; }
+  /* 버튼 */
+  .upload-area { display: flex; gap: 10px; margin-bottom: 16px; }
+  .upload-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 14px 8px; border-radius: 12px; font-size: 14px; font-weight: bold; color: white; cursor: pointer; border: none; gap: 5px; text-decoration: none; text-align: center; }
+  .upload-btn:active { opacity: 0.75; }
+  .upload-btn .icon { font-size: 22px; }
+  .btn-pdf { background: linear-gradient(135deg, #8e44ad, #6c3483); box-shadow: 0 3px 8px rgba(142,68,173,0.3); }
+  .btn-analyze { background: linear-gradient(135deg, #e67e22, #ca6f1e); box-shadow: 0 3px 8px rgba(230,126,34,0.35); }
+  #pdfFileInput { display: none; }
 
-  /* 결과 카드 */
+  /* PDF 미리보기 */
+  #pdf-section { display: none; margin-bottom: 16px; }
+  .pdf-preview-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+  .pdf-thumb { position: relative; border-radius: 8px; overflow: hidden; aspect-ratio: 3/4; background: #ddd; }
+  .pdf-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .pdf-thumb .del-btn { position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.6); color: white; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .pdf-add-btn { border-radius: 8px; border: 2px dashed #8e44ad; background: #f8f0fd; color: #8e44ad; font-size: 24px; aspect-ratio: 3/4; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  #makePdfBtn { width: 100%; padding: 13px; background: linear-gradient(135deg, #8e44ad, #6c3483); color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: bold; cursor: pointer; margin-bottom: 16px; box-shadow: 0 3px 8px rgba(142,68,173,0.3); }
+  #makePdfBtn:active { opacity: 0.8; }
+
   .section-label { font-size: 12px; color: #888; font-weight: bold; letter-spacing: 1px; margin-bottom: 8px; padding-left: 4px; }
   .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
   .section-header .section-label { margin-bottom: 0; }
   .section-link { font-size: 12px; color: #2e75b6; font-weight: bold; text-decoration: none; }
-
   .card { background: white; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.07); overflow: hidden; }
   .row { display: flex; align-items: center; padding: 13px 16px; border-bottom: 1px solid #f0f0f0; }
   .row:last-child { border-bottom: none; }
   .row-label { font-size: 12px; color: #888; width: 72px; flex-shrink: 0; }
   .row-value { font-size: 15px; font-weight: 600; color: #1c1c1e; flex: 1; word-break: break-all; }
   .row-value.empty { color: #ccc; font-weight: normal; font-style: italic; }
-  .copy-btn {
-    background: #e8f1fb; color: #2e75b6; border: none; border-radius: 8px;
-    padding: 6px 12px; font-size: 13px; font-weight: bold; cursor: pointer;
-    flex-shrink: 0; margin-left: 8px;
-  }
+  .copy-btn { background: #e8f1fb; color: #2e75b6; border: none; border-radius: 8px; padding: 6px 12px; font-size: 13px; font-weight: bold; cursor: pointer; flex-shrink: 0; margin-left: 8px; }
   .copy-btn:active { background: #2e75b6; color: white; }
-
-  /* 전체복사 */
-  .copy-all-btn {
-    width: 100%; padding: 13px;
-    background: linear-gradient(135deg, #d35400, #b94600);
-    color: white; border: none; border-radius: 12px;
-    font-size: 15px; font-weight: bold; cursor: pointer;
-    margin-bottom: 20px;
-    box-shadow: 0 3px 8px rgba(211,84,0,0.35);
-  }
+  .copy-all-btn { width: 100%; padding: 13px; background: linear-gradient(135deg, #d35400, #b94600); color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: bold; cursor: pointer; margin-bottom: 20px; box-shadow: 0 3px 8px rgba(211,84,0,0.35); }
   .copy-all-btn:active { opacity: 0.8; }
-
-  /* 앱 링크 */
   .app-buttons { display: flex; gap: 10px; margin-bottom: 16px; }
-  .app-btn {
-    flex: 1; display: block; text-align: center; text-decoration: none;
-    padding: 13px 6px; border-radius: 12px; font-size: 13px; font-weight: bold;
-    color: white; box-shadow: 0 3px 8px rgba(0,0,0,0.15);
-  }
+  .app-btn { flex: 1; display: block; text-align: center; text-decoration: none; padding: 13px 6px; border-radius: 12px; font-size: 13px; font-weight: bold; color: white; box-shadow: 0 3px 8px rgba(0,0,0,0.15); }
   .app-btn:active { opacity: 0.75; }
   .app-btn .icon { font-size: 20px; display: block; margin-bottom: 3px; }
   .btn-safety { background: linear-gradient(135deg, #1e8449, #196f3d); }
   .btn-kakao  { background: linear-gradient(135deg, #f9e000, #e6c800); color: #3c1e1e; }
   .btn-band   { background: linear-gradient(135deg, #00c73c, #009e30); }
-
-  /* 토스트 */
-  .toast {
-    position: fixed; bottom: 80px; left: 50%;
-    transform: translateX(-50%) translateY(20px);
-    background: rgba(0,0,0,0.75); color: white;
-    padding: 10px 20px; border-radius: 20px; font-size: 14px;
-    opacity: 0; transition: all 0.3s; pointer-events: none;
-    white-space: nowrap; z-index: 999;
-  }
+  .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px); background: rgba(0,0,0,0.75); color: white; padding: 10px 20px; border-radius: 20px; font-size: 14px; opacity: 0; transition: all 0.3s; pointer-events: none; white-space: nowrap; z-index: 999; }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
 </head>
@@ -127,7 +65,7 @@
 
 <div class="title">📋 작업허가서 분석 <span style="font-size:13px;color:#8e44ad;font-weight:normal;">iPhone</span></div>
 
-<!-- 단축어 다운로드 배너 -->
+<!-- 단축어 배너 -->
 <a class="shortcut-banner" href="https://www.icloud.com/shortcuts/4d78469de9d643b2804b9e1a5d947aff">
   <div class="banner-text">
     <div class="banner-title">📲 단축어 설치</div>
@@ -136,17 +74,29 @@
   <div class="banner-btn">설치하기</div>
 </a>
 
-<!-- 사진 버튼 -->
-<div class="photo-buttons">
-  <a class="photo-btn" href="shortcuts://run-shortcut?name=안전보건복붙&input=갤러리">
+<!-- 파일 input -->
+<input type="file" id="pdfFileInput" accept="image/*" multiple>
+
+<!-- 버튼 -->
+<div class="upload-area">
+  <button class="upload-btn btn-pdf" onclick="document.getElementById('pdfFileInput').click()">
     <span class="icon">🖼️</span>PDF용 사진가져오기
-  </a>
-  <a class="photo-btn" href="shortcuts://run-shortcut?name=안전보건복붙&input=갤러리">
+  </button>
+  <a class="upload-btn btn-analyze" href="shortcuts://run-shortcut?name=안전보건복붙&input=갤러리">
     <span class="icon">🖼️</span>허가서 사진가져오기
   </a>
 </div>
 
-<!-- 결과 -->
+<!-- PDF 섹션 -->
+<div id="pdf-section">
+  <div class="section-label">PDF 사진 목록 <span id="pdf-count" style="color:#8e44ad"></span></div>
+  <div class="pdf-preview-grid" id="pdf-grid">
+    <div class="pdf-add-btn" onclick="document.getElementById('pdfFileInput').click()">+</div>
+  </div>
+  <button id="makePdfBtn" onclick="makePdf()">📄 PDF 생성하기</button>
+</div>
+
+<!-- 분석 결과 -->
 <div class="section-label">분석 결과</div>
 <div class="card">
   <div class="row">
@@ -178,7 +128,6 @@
 
 <button class="copy-all-btn" onclick="copyAll()">📋 전체 내용 복사</button>
 
-<!-- 앱 바로가기 -->
 <div class="section-header">
   <span class="section-label">바로가기</span>
   <a class="section-link" href="https://juneylee.github.io/sc4Permit/">일반 버전</a>
@@ -198,25 +147,89 @@
 <div class="toast" id="toast"></div>
 
 <script>
-  const params = new URLSearchParams(window.location.search);
+  let pdfImages = [];
 
-  function setVal(id, key) {
-    const el = document.getElementById(id);
+  // URL 파라미터 처리
+  const params = new URLSearchParams(window.location.search);
+  function setFromParam(id, key) {
     const val = params.get(key);
     if (val && val !== 'null' && val.trim() !== '') {
-      el.textContent = decodeURIComponent(val);
+      setVal(id, decodeURIComponent(val));
+    }
+  }
+  setFromParam('v-permit', 'permit');
+  setFromParam('v-order',  'order');
+  setFromParam('v-task',   'task');
+  setFromParam('v-date',   'date');
+  setFromParam('v-people', 'people');
+
+  // PDF 사진 선택
+  document.getElementById('pdfFileInput').addEventListener('change', function(e) {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        pdfImages.push({ dataUrl: ev.target.result, mime: file.type });
+        renderPdfGrid();
+      };
+      reader.readAsDataURL(file);
+    });
+    this.value = '';
+  });
+
+  function renderPdfGrid() {
+    const grid = document.getElementById('pdf-grid');
+    grid.innerHTML = '';
+    pdfImages.forEach((img, i) => {
+      const div = document.createElement('div');
+      div.className = 'pdf-thumb';
+      div.innerHTML = `<img src="${img.dataUrl}"><button class="del-btn" onclick="removePdfImg(${i})">×</button>`;
+      grid.appendChild(div);
+    });
+    const add = document.createElement('div');
+    add.className = 'pdf-add-btn';
+    add.textContent = '+';
+    add.onclick = () => document.getElementById('pdfFileInput').click();
+    grid.appendChild(add);
+    document.getElementById('pdf-section').style.display = pdfImages.length ? 'block' : 'none';
+    document.getElementById('pdf-count').textContent = pdfImages.length + '장';
+  }
+
+  function removePdfImg(i) {
+    pdfImages.splice(i, 1);
+    renderPdfGrid();
+  }
+
+  async function makePdf() {
+    if (!pdfImages.length) { showToast('사진을 먼저 선택하세요'); return; }
+    showToast('PDF 생성 중...');
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const W = 210, H = 297;
+    for (let i = 0; i < pdfImages.length; i++) {
+      if (i > 0) doc.addPage();
+      const img = new Image();
+      await new Promise(res => { img.onload = res; img.src = pdfImages[i].dataUrl; });
+      const ratio = Math.min(W / img.width, H / img.height);
+      const w = img.width * ratio, h = img.height * ratio;
+      doc.addImage(pdfImages[i].dataUrl, pdfImages[i].mime === 'image/png' ? 'PNG' : 'JPEG', (W-w)/2, (H-h)/2, w, h);
+    }
+    const now = new Date();
+    doc.save(`작업허가서_${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}.pdf`);
+    showToast('PDF 저장 완료!');
+  }
+
+  function setVal(id, val) {
+    const el = document.getElementById(id);
+    if (val && val !== 'null' && String(val).trim() !== '') {
+      el.textContent = String(val);
       el.classList.remove('empty');
     } else {
       el.textContent = '—';
       el.classList.add('empty');
     }
   }
-
-  setVal('v-permit', 'permit');
-  setVal('v-order',  'order');
-  setVal('v-task',   'task');
-  setVal('v-date',   'date');
-  setVal('v-people', 'people');
 
   function showToast(msg) {
     const t = document.getElementById('toast');
