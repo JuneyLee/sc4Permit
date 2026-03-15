@@ -9,11 +9,13 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: -apple-system, 'Malgun Gothic', sans-serif; background: #f0f4f8; padding: 16px; min-height: 100vh; }
   .title { text-align: center; font-size: 18px; font-weight: bold; color: #1a5276; margin-bottom: 16px; padding: 12px; background: white; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+
+  /* 버튼 */
   .upload-area { display: flex; gap: 10px; margin-bottom: 16px; }
   .upload-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 16px 8px; border-radius: 12px; font-size: 14px; font-weight: bold; color: white; cursor: pointer; border: none; gap: 6px; }
   .upload-btn:active { opacity: 0.75; }
   .upload-btn .icon { font-size: 22px; }
-  .btn-pdf { background: linear-gradient(135deg, #8e44ad, #6c3483); box-shadow: 0 3px 8px rgba(142,68,173,0.3); }
+  .btn-pdf     { background: linear-gradient(135deg, #8e44ad, #6c3483); box-shadow: 0 3px 8px rgba(142,68,173,0.3); }
   .btn-analyze { background: linear-gradient(135deg, #2e75b6, #1a5276); box-shadow: 0 3px 8px rgba(46,117,182,0.3); }
   #pdfFileInput, #analyzeFileInput { display: none; }
 
@@ -28,10 +30,16 @@
   #makePdfBtn:active { opacity: 0.8; }
 
   /* 허가서 분석 미리보기 */
-  #analyze-preview-wrap { display: none; margin-bottom: 16px; text-align: center; }
+  #analyze-preview-wrap { display: none; margin-bottom: 12px; position: relative; text-align: center; }
   #analyze-preview-wrap img { max-width: 100%; max-height: 200px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
-  #analyzeBtn { display: none; width: 100%; padding: 14px; background: linear-gradient(135deg, #27ae60, #1e8449); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 16px; box-shadow: 0 3px 8px rgba(39,174,96,0.3); }
+  .preview-reset-btn { position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.55); color: white; border: none; border-radius: 50%; width: 26px; height: 26px; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+  .analyze-btns { display: flex; gap: 8px; margin-bottom: 16px; }
+  #analyzeBtn { flex: 1; display: none; padding: 14px; background: linear-gradient(135deg, #27ae60, #1e8449); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 3px 8px rgba(39,174,96,0.3); }
   #analyzeBtn:active { opacity: 0.8; }
+  #reanalyzeBtn { display: none; padding: 14px 16px; background: #eaf4f0; color: #1e8449; border: none; border-radius: 12px; font-size: 14px; font-weight: bold; cursor: pointer; white-space: nowrap; }
+  #reanalyzeBtn:active { background: #27ae60; color: white; }
+
   #loading { display: none; text-align: center; padding: 20px; color: #2e75b6; font-size: 15px; font-weight: bold; }
   .spinner { width: 36px; height: 36px; border: 4px solid #e0e0e0; border-top-color: #2e75b6; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 10px; }
   @keyframes spin { to { transform: rotate(360deg); } }
@@ -46,10 +54,12 @@
   .row-label { font-size: 12px; color: #888; width: 72px; flex-shrink: 0; }
   .row-value { font-size: 15px; font-weight: 600; color: #1c1c1e; flex: 1; word-break: break-all; }
   .row-value.empty { color: #ccc; font-weight: normal; font-style: italic; }
-  .copy-btn { background: #e8f1fb; color: #2e75b6; border: none; border-radius: 8px; padding: 6px 12px; font-size: 13px; font-weight: bold; cursor: pointer; flex-shrink: 0; margin-left: 8px; }
+  .copy-btn { background: #e8f1fb; color: #2e75b6; border: none; border-radius: 8px; padding: 6px 12px; font-size: 13px; font-weight: bold; cursor: pointer; flex-shrink: 0; margin-left: 8px; transition: background 0.15s, color 0.15s; }
   .copy-btn:active { background: #2e75b6; color: white; }
+  .copy-btn.copied { background: #27ae60; color: white; }
   .copy-all-btn { width: 100%; padding: 13px; background: #1a5276; color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: bold; cursor: pointer; margin-bottom: 20px; box-shadow: 0 3px 8px rgba(26,82,118,0.3); }
   .copy-all-btn:active { opacity: 0.8; }
+
   .app-buttons { display: flex; gap: 10px; margin-bottom: 16px; }
   .app-btn { flex: 1; display: block; text-align: center; text-decoration: none; padding: 13px 6px; border-radius: 12px; font-size: 13px; font-weight: bold; color: white; box-shadow: 0 3px 8px rgba(0,0,0,0.15); }
   .app-btn:active { opacity: 0.75; }
@@ -57,13 +67,21 @@
   .btn-safety { background: linear-gradient(135deg, #1e8449, #196f3d); }
   .btn-kakao  { background: linear-gradient(135deg, #f9e000, #e6c800); color: #3c1e1e; }
   .btn-band   { background: linear-gradient(135deg, #00c73c, #009e30); }
+
+  /* 토스트 & 인라인 알림 */
   .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px); background: rgba(0,0,0,0.75); color: white; padding: 10px 20px; border-radius: 20px; font-size: 14px; opacity: 0; transition: all 0.3s; pointer-events: none; white-space: nowrap; z-index: 999; }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.error { background: rgba(192,57,43,0.9); }
+
+  #api-error { display: none; background: #fdf0ee; border: 1px solid #e74c3c; border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; font-size: 13px; color: #c0392b; line-height: 1.5; }
 </style>
 </head>
 <body>
 
 <div class="title">📋 작업허가서 분석</div>
+
+<!-- API 오류 박스 -->
+<div id="api-error"></div>
 
 <!-- 파일 input -->
 <input type="file" id="pdfFileInput" accept="image/*" multiple>
@@ -91,40 +109,45 @@
 <!-- 허가서 분석 미리보기 -->
 <div id="analyze-preview-wrap">
   <img id="analyze-preview-img" src="" alt="미리보기">
+  <button class="preview-reset-btn" onclick="resetAnalyzePhoto()" title="사진 변경">✕</button>
 </div>
-<button id="analyzeBtn" onclick="analyze()">🔍 분석하기</button>
+<div class="analyze-btns">
+  <button id="analyzeBtn"   onclick="analyze()">🔍 분석하기</button>
+  <button id="reanalyzeBtn" onclick="analyze()">↺ 재분석</button>
+</div>
 
 <div id="loading">
   <div class="spinner"></div>
   분석 중입니다...
 </div>
 
+<!-- 분석 결과 -->
 <div class="section-label">분석 결과</div>
 <div class="card">
   <div class="row">
     <span class="row-label">허가번호</span>
     <span class="row-value empty" id="v-permit">—</span>
-    <button class="copy-btn" onclick="copyVal('v-permit','허가번호')">복사</button>
+    <button class="copy-btn" onclick="copyVal('v-permit','허가번호',this)">복사</button>
   </div>
   <div class="row">
     <span class="row-label">오더번호</span>
     <span class="row-value empty" id="v-order">—</span>
-    <button class="copy-btn" onclick="copyVal('v-order','오더번호')">복사</button>
+    <button class="copy-btn" onclick="copyVal('v-order','오더번호',this)">복사</button>
   </div>
   <div class="row">
     <span class="row-label">작업명</span>
     <span class="row-value empty" id="v-task">—</span>
-    <button class="copy-btn" onclick="copyVal('v-task','작업명')">복사</button>
+    <button class="copy-btn" onclick="copyVal('v-task','작업명',this)">복사</button>
   </div>
   <div class="row">
     <span class="row-label">작업일</span>
     <span class="row-value empty" id="v-date">—</span>
-    <button class="copy-btn" onclick="copyVal('v-date','작업일')">복사</button>
+    <button class="copy-btn" onclick="copyVal('v-date','작업일',this)">복사</button>
   </div>
   <div class="row">
     <span class="row-label">작업인원</span>
     <span class="row-value empty" id="v-people">—</span>
-    <button class="copy-btn" onclick="copyVal('v-people','작업인원')">복사</button>
+    <button class="copy-btn" onclick="copyVal('v-people','작업인원',this)">복사</button>
   </div>
 </div>
 
@@ -135,13 +158,13 @@
   <a class="section-link" href="https://juneylee.github.io/sc4Permit/4SC.html">아이폰 단축어용</a>
 </div>
 <div class="app-buttons">
-  <a class="app-btn btn-safety" href="https://sahps.kr/safety/workpermitreg/">
+  <a class="app-btn btn-safety" href="https://sahps.kr/safety/workpermitreg/" onclick="copyTask()">
     <span class="icon">🛡️</span>안전보건
   </a>
-  <a class="app-btn btn-kakao" href="kakaotalk://">
+  <a class="app-btn btn-kakao" href="kakaotalk://" onclick="copyTask()">
     <span class="icon">💬</span>카카오톡
   </a>
-  <a class="app-btn btn-band" href="bandapp://">
+  <a class="app-btn btn-band" href="bandapp://" onclick="copyTask()">
     <span class="icon">📣</span>네이버밴드
   </a>
 </div>
@@ -149,26 +172,27 @@
 <div class="toast" id="toast"></div>
 
 <script>
-  const API_KEY = 'AIzaSyAOBjYJil3XGbj3GbdbhekOeYXs67rDQ1A';
+  /* ── 상태 ── */
   let analyzeBase64 = '';
-  let analyzeMime = '';
-  let pdfImages = []; // {dataUrl, mime}
+  let analyzeMime   = '';
+  let pdfImages = [];
+  const GAS_URL = 'https://script.google.com/macros/s/AKfycbwqkC8Bvx8aCVjEUuOpXFeoo5nTCo6k_QRgTquJNofRM-IxZB2rEnBhv44ZBZiTpXut/exec';
 
-  // URL 파라미터 처리
+  /* ── URL 파라미터 처리 ── */
   const params = new URLSearchParams(window.location.search);
-  ['permit','order','task','date','people'].forEach((key, i) => {
-    const ids = ['v-permit','v-order','v-task','v-date','v-people'];
-    const val = params.get(key);
-    if (val && val !== 'null') setVal(ids[i], decodeURIComponent(val));
-  });
+  [['permit','v-permit'],['order','v-order'],['task','v-task'],['date','v-date'],['people','v-people']]
+    .forEach(([key, id]) => {
+      const val = params.get(key);
+      if (val && val !== 'null') setVal(id, decodeURIComponent(val));
+    });
 
-  // PDF 사진 선택
+  /* ── PDF 사진 선택 ── */
   document.getElementById('pdfFileInput').addEventListener('change', function(e) {
     const files = Array.from(e.target.files);
     if (!files.length) return;
     files.forEach(file => {
       const reader = new FileReader();
-      reader.onload = function(ev) {
+      reader.onload = ev => {
         pdfImages.push({ dataUrl: ev.target.result, mime: file.type });
         renderPdfGrid();
       };
@@ -183,123 +207,148 @@
     pdfImages.forEach((img, i) => {
       const div = document.createElement('div');
       div.className = 'pdf-thumb';
-      div.innerHTML = `<img src="${img.dataUrl}">
-        <button class="del-btn" onclick="removePdfImg(${i})">×</button>`;
+      div.innerHTML = `<img src="${img.dataUrl}"><button class="del-btn" onclick="removePdfImg(${i})">×</button>`;
       grid.appendChild(div);
     });
-    // 추가 버튼
     const add = document.createElement('div');
     add.className = 'pdf-add-btn';
     add.textContent = '+';
     add.onclick = () => document.getElementById('pdfFileInput').click();
     grid.appendChild(add);
-
     document.getElementById('pdf-section').style.display = pdfImages.length ? 'block' : 'none';
     document.getElementById('pdf-count').textContent = pdfImages.length + '장';
   }
 
   function removePdfImg(i) {
     pdfImages.splice(i, 1);
-    renderPdfGrid();
+    if (!pdfImages.length) {
+      document.getElementById('pdf-section').style.display = 'none';
+    } else {
+      renderPdfGrid();
+    }
   }
 
   async function makePdf() {
-    if (!pdfImages.length) { showToast('사진을 먼저 선택하세요'); return; }
-    showToast('PDF 생성 중...');
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-    const W = 210, H = 297;
-
-    for (let i = 0; i < pdfImages.length; i++) {
-      if (i > 0) doc.addPage();
-      const img = new Image();
-      await new Promise(res => {
-        img.onload = res;
-        img.src = pdfImages[i].dataUrl;
-      });
-      const iw = img.width, ih = img.height;
-      const ratio = Math.min(W / iw, H / ih);
-      const w = iw * ratio, h = ih * ratio;
-      const x = (W - w) / 2, y = (H - h) / 2;
-      const fmt = pdfImages[i].mime === 'image/png' ? 'PNG' : 'JPEG';
-      doc.addImage(pdfImages[i].dataUrl, fmt, x, y, w, h);
+    if (!pdfImages.length) { showToast('사진을 먼저 선택하세요', true); return; }
+    const btn = document.getElementById('makePdfBtn');
+    btn.disabled = true;
+    btn.textContent = '⏳ 생성 중...';
+    try {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      const W = 210, H = 297;
+      for (let i = 0; i < pdfImages.length; i++) {
+        if (i > 0) doc.addPage();
+        const imgEl = new Image();
+        await new Promise(res => { imgEl.onload = res; imgEl.src = pdfImages[i].dataUrl; });
+        const ratio = Math.min(W / imgEl.width, H / imgEl.height);
+        const w = imgEl.width * ratio, h = imgEl.height * ratio;
+        doc.addImage(pdfImages[i].dataUrl,
+          pdfImages[i].mime === 'image/png' ? 'PNG' : 'JPEG',
+          (W - w) / 2, (H - h) / 2, w, h);
+      }
+      const now  = new Date();
+      const date = `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}`;
+      doc.save(`permit_${date}.pdf`);   // 한글 파일명 대신 ASCII로 iOS 안전
+      showToast('PDF 저장 완료!');
+    } catch(e) {
+      showToast('PDF 생성 오류: ' + e.message, true);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '📄 PDF 생성하기';
     }
-
-    const now = new Date();
-    const fname = `작업허가서_${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}.pdf`;
-    doc.save(fname);
-    showToast('PDF 저장 완료!');
   }
 
-  // 허가서 분석 사진 선택
+  /* ── 허가서 분석 사진 선택 ── */
   document.getElementById('analyzeFileInput').addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (!file) return;
     analyzeMime = file.type || 'image/jpeg';
-    const reader = new FileReader();
-    reader.onload = function(ev) {
-      const result = ev.target.result;
-      analyzeBase64 = result.split(',')[1];
-      document.getElementById('analyze-preview-img').src = result;
+    compressImage(file, 1280, 0.82, dataUrl => {
+      analyzeBase64 = dataUrl.split(',')[1];
+      document.getElementById('analyze-preview-img').src = dataUrl;
       document.getElementById('analyze-preview-wrap').style.display = 'block';
-      document.getElementById('analyzeBtn').style.display = 'block';
-    };
-    reader.readAsDataURL(file);
+      document.getElementById('analyzeBtn').style.display   = 'block';
+      document.getElementById('reanalyzeBtn').style.display = 'none';
+      hideApiError();
+    });
+    this.value = '';
   });
 
+  /* 사진 리셋 */
+  function resetAnalyzePhoto() {
+    analyzeBase64 = '';
+    analyzeMime   = '';
+    document.getElementById('analyze-preview-wrap').style.display = 'none';
+    document.getElementById('analyzeBtn').style.display   = 'none';
+    document.getElementById('reanalyzeBtn').style.display = 'none';
+    document.getElementById('analyzeFileInput').click();   // 바로 새 사진 선택
+  }
+
+  /* ── 이미지 압축 ── */
+  function compressImage(file, maxPx, quality, cb) {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        if (Math.max(w, h) > maxPx) {
+          const r = maxPx / Math.max(w, h);
+          w = Math.round(w * r);
+          h = Math.round(h * r);
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        cb(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  /* ── Gemini 분석 ── */
   async function analyze() {
     if (!analyzeBase64) return;
-    document.getElementById('analyzeBtn').style.display = 'none';
-    document.getElementById('loading').style.display = 'block';
-
-    const prompt = `작업허가서를 촬영한 사진입니다.
-JSON 형식 사전으로 답을 해 주세요.
-반드시 유효한 JSON 객체만 출력하세요.
-JSON 외 텍스트가 있으면 안 됩니다.
-작업명이 길 경우 두줄로 나타날 수 있습니다 잘 확인하고 인식하세요.
-값이 없거나 읽을 수 없으면 null로 하세요.
-{"허가번호":"","오더번호":"","작업명":"","작업일":"","작업인원":""}`;
+    hideApiError();
+    document.getElementById('analyzeBtn').style.display   = 'none';
+    document.getElementById('reanalyzeBtn').style.display = 'none';
+    document.getElementById('loading').style.display      = 'block';
 
     try {
-      const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [
-              { text: prompt },
-              { inline_data: { mime_type: analyzeMime, data: analyzeBase64 } }
-            ]}]
-          })
-        }
-      );
+      const res = await fetch(GAS_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: analyzeBase64, mime: 'image/jpeg' })
+      });
       const data = await res.json();
+
       if (data.error) {
-        const code = data.error.code;
-        const msg = data.error.message || '';
-        if (code === 429 || msg.includes('quota') || msg.includes('RESOURCE_EXHAUSTED')) {
-          showAlert('⚠️ 무료 API 한도 초과\n오늘 사용량이 한계에 도달했습니다.\n내일 다시 시도하거나 관리자에게 문의하세요.');
+        const msg = data.error;
+        if (msg.includes('quota') || msg.includes('RESOURCE_EXHAUSTED')) {
+          showApiError('⚠️ 무료 API 한도 초과\n오늘 사용량이 한계에 도달했습니다. 내일 다시 시도하세요.');
         } else {
-          showAlert('API 오류 ' + code + '\n' + msg);
+          showApiError('오류: ' + msg);
         }
         return;
       }
-      let text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-      text = text.replace(/```json/g,'').replace(/```/g,'').trim();
-      const json = JSON.parse(text);
-      setVal('v-permit', json['허가번호']);
-      setVal('v-order',  json['오더번호']);
-      setVal('v-task',   json['작업명']);
-      setVal('v-date',   json['작업일']);
-      setVal('v-people', json['작업인원']);
+
+      setVal('v-permit', data['허가번호']);
+      setVal('v-order',  data['오더번호']);
+      setVal('v-task',   data['작업명']);
+      setVal('v-date',   data['작업일']);
+      setVal('v-people', data['작업인원']);
+      showToast('분석 완료 ✓');
     } catch(e) {
-      showAlert('분석 오류가 발생했습니다\n' + e.message);
+      showApiError('분석 오류가 발생했습니다\n' + e.message);
     } finally {
-      document.getElementById('loading').style.display = 'none';
-      document.getElementById('analyzeBtn').style.display = 'block';
+      document.getElementById('loading').style.display      = 'none';
+      document.getElementById('reanalyzeBtn').style.display = 'block';
     }
   }
+
+  /* ── 유틸 ── */
+  function pad(n) { return String(n).padStart(2,'0'); }
 
   function setVal(id, val) {
     const el = document.getElementById(id);
@@ -312,41 +361,60 @@ JSON 외 텍스트가 있으면 안 됩니다.
     }
   }
 
-  function showAlert(msg) { alert(msg); }
-
-  function showToast(msg) {
+  function showToast(msg, isErr) {
     const t = document.getElementById('toast');
     t.textContent = msg;
-    t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 1800);
+    t.className   = 'toast show' + (isErr ? ' error' : '');
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => t.classList.remove('show'), 2000);
   }
 
-  function copyVal(id, label) {
+  function showApiError(msg) {
+    const el = document.getElementById('api-error');
+    el.style.display = 'block';
+    el.textContent   = msg;
+  }
+  function hideApiError() {
+    document.getElementById('api-error').style.display = 'none';
+  }
+
+  function copyVal(id, label, btn) {
     const val = document.getElementById(id).textContent;
-    if (val === '—') { showToast('값이 없습니다'); return; }
+    if (val === '—') { showToast('값이 없습니다', true); return; }
+    const write = () => {
+      if (btn) { btn.textContent = '✓'; btn.classList.add('copied'); setTimeout(() => { btn.textContent = '복사'; btn.classList.remove('copied'); }, 1200); }
+    };
     navigator.clipboard.writeText(val)
-      .then(() => showToast(label + ' 복사 완료'))
-      .catch(() => { fallbackCopy(val); showToast(label + ' 복사 완료'); });
+      .then(() => { write(); })
+      .catch(() => { fallbackCopy(val); write(); });
   }
 
   function copyAll() {
-    const lines = [
-      '허가번호 : ' + document.getElementById('v-permit').textContent,
-      '오더번호 : ' + document.getElementById('v-order').textContent,
-      '작업명   : ' + document.getElementById('v-task').textContent,
-      '작업일   : ' + document.getElementById('v-date').textContent,
-      '작업인원 : ' + document.getElementById('v-people').textContent,
-    ].join('\n');
+    const fields = [
+      ['v-permit','허가번호'],
+      ['v-order', '오더번호'],
+      ['v-task',  '작업명  '],
+      ['v-date',  '작업일  '],
+      ['v-people','작업인원'],
+    ];
+    const filled = fields.filter(([id]) => document.getElementById(id).textContent !== '—');
+    if (!filled.length) { showToast('분석 결과가 없습니다', true); return; }
+    const lines = filled.map(([id, label]) => label + ' : ' + document.getElementById(id).textContent).join('\n');
     navigator.clipboard.writeText(lines)
       .then(() => showToast('전체 복사 완료'))
       .catch(() => { fallbackCopy(lines); showToast('전체 복사 완료'); });
   }
 
+  function copyTask() {
+    const val = document.getElementById('v-task').textContent;
+    if (val === '—') return;
+    navigator.clipboard.writeText(val).catch(() => fallbackCopy(val));
+  }
+
   function fallbackCopy(text) {
     const ta = document.createElement('textarea');
-    ta.value = text;
-    document.body.appendChild(ta);
-    ta.select();
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
     document.execCommand('copy');
     document.body.removeChild(ta);
   }
