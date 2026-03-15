@@ -19,7 +19,7 @@
 
   /* 버튼 */
   .upload-area { display: flex; gap: 10px; margin-bottom: 16px; }
-  .upload-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 14px 8px; border-radius: 12px; font-size: 14px; font-weight: bold; color: white; cursor: pointer; border: none; gap: 5px; text-decoration: none; text-align: center; }
+  .upload-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 14px 8px; border-radius: 12px; font-size: 14px; font-weight: bold; color: white; cursor: pointer; border: none; gap: 5px; text-align: center; }
   .upload-btn:active { opacity: 0.75; }
   .upload-btn .icon { font-size: 22px; }
   .btn-pdf { background: linear-gradient(135deg, #8e44ad, #6c3483); box-shadow: 0 3px 8px rgba(142,68,173,0.3); }
@@ -46,8 +46,9 @@
   .row-label { font-size: 12px; color: #888; width: 72px; flex-shrink: 0; }
   .row-value { font-size: 15px; font-weight: 600; color: #1c1c1e; flex: 1; word-break: break-all; }
   .row-value.empty { color: #ccc; font-weight: normal; font-style: italic; }
-  .copy-btn { background: #e8f1fb; color: #2e75b6; border: none; border-radius: 8px; padding: 6px 12px; font-size: 13px; font-weight: bold; cursor: pointer; flex-shrink: 0; margin-left: 8px; }
+  .copy-btn { background: #e8f1fb; color: #2e75b6; border: none; border-radius: 8px; padding: 6px 12px; font-size: 13px; font-weight: bold; cursor: pointer; flex-shrink: 0; margin-left: 8px; transition: background 0.15s, color 0.15s; }
   .copy-btn:active { background: #2e75b6; color: white; }
+  .copy-btn.copied { background: #27ae60; color: white; }
   .copy-all-btn { width: 100%; padding: 13px; background: linear-gradient(135deg, #d35400, #b94600); color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: bold; cursor: pointer; margin-bottom: 20px; box-shadow: 0 3px 8px rgba(211,84,0,0.35); }
   .copy-all-btn:active { opacity: 0.8; }
   .app-buttons { display: flex; gap: 10px; margin-bottom: 16px; }
@@ -57,15 +58,20 @@
   .btn-safety { background: linear-gradient(135deg, #1e8449, #196f3d); }
   .btn-kakao  { background: linear-gradient(135deg, #f9e000, #e6c800); color: #3c1e1e; }
   .btn-band   { background: linear-gradient(135deg, #00c73c, #009e30); }
+
+  /* 토스트 */
   .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px); background: rgba(0,0,0,0.75); color: white; padding: 10px 20px; border-radius: 20px; font-size: 14px; opacity: 0; transition: all 0.3s; pointer-events: none; white-space: nowrap; z-index: 999; }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.error { background: rgba(192,57,43,0.9); }
+
+
 </style>
 </head>
 <body>
 
 <div class="title">📋 작업허가서 분석 <span style="font-size:13px;color:#8e44ad;font-weight:normal;">iPhone</span></div>
 
-<!-- 단축어 배너 -->
+<!-- 단축어 설치 배너 -->
 <a class="shortcut-banner" href="https://www.icloud.com/shortcuts/4d78469de9d643b2804b9e1a5d947aff">
   <div class="banner-text">
     <div class="banner-title">📲 단축어 설치</div>
@@ -73,6 +79,8 @@
   </div>
   <div class="banner-btn">설치하기</div>
 </a>
+
+
 
 <!-- 파일 input -->
 <input type="file" id="pdfFileInput" accept="image/*" multiple>
@@ -102,27 +110,27 @@
   <div class="row">
     <span class="row-label">허가번호</span>
     <span class="row-value empty" id="v-permit">—</span>
-    <button class="copy-btn" onclick="copyVal('v-permit','허가번호')">복사</button>
+    <button class="copy-btn" onclick="copyVal('v-permit','허가번호',this)">복사</button>
   </div>
   <div class="row">
     <span class="row-label">오더번호</span>
     <span class="row-value empty" id="v-order">—</span>
-    <button class="copy-btn" onclick="copyVal('v-order','오더번호')">복사</button>
+    <button class="copy-btn" onclick="copyVal('v-order','오더번호',this)">복사</button>
   </div>
   <div class="row">
     <span class="row-label">작업명</span>
     <span class="row-value empty" id="v-task">—</span>
-    <button class="copy-btn" onclick="copyVal('v-task','작업명')">복사</button>
+    <button class="copy-btn" onclick="copyVal('v-task','작업명',this)">복사</button>
   </div>
   <div class="row">
     <span class="row-label">작업일</span>
     <span class="row-value empty" id="v-date">—</span>
-    <button class="copy-btn" onclick="copyVal('v-date','작업일')">복사</button>
+    <button class="copy-btn" onclick="copyVal('v-date','작업일',this)">복사</button>
   </div>
   <div class="row">
     <span class="row-label">작업인원</span>
     <span class="row-value empty" id="v-people">—</span>
-    <button class="copy-btn" onclick="copyVal('v-people','작업인원')">복사</button>
+    <button class="copy-btn" onclick="copyVal('v-people','작업인원',this)">복사</button>
   </div>
 </div>
 
@@ -133,13 +141,13 @@
   <a class="section-link" href="https://juneylee.github.io/sc4Permit/">일반 버전</a>
 </div>
 <div class="app-buttons">
-  <a class="app-btn btn-safety" href="https://sahps.kr/safety/workpermitreg/">
+  <a class="app-btn btn-safety" href="https://sahps.kr/safety/workpermitreg/" onclick="copyTask()">
     <span class="icon">🛡️</span>안전보건
   </a>
-  <a class="app-btn btn-kakao" href="kakaotalk://">
+  <a class="app-btn btn-kakao" href="kakaotalk://" onclick="copyTask()">
     <span class="icon">💬</span>카카오톡
   </a>
-  <a class="app-btn btn-band" href="bandapp://">
+  <a class="app-btn btn-band" href="bandapp://" onclick="copyTask()">
     <span class="icon">📣</span>네이버밴드
   </a>
 </div>
@@ -149,27 +157,21 @@
 <script>
   let pdfImages = [];
 
-  // URL 파라미터 처리
+  /* ── URL 파라미터 처리 ── */
   const params = new URLSearchParams(window.location.search);
-  function setFromParam(id, key) {
+  const paramMap = [['permit','v-permit'],['order','v-order'],['task','v-task'],['date','v-date'],['people','v-people']];
+  paramMap.forEach(([key, id]) => {
     const val = params.get(key);
-    if (val && val !== 'null' && val.trim() !== '') {
-      setVal(id, decodeURIComponent(val));
-    }
-  }
-  setFromParam('v-permit', 'permit');
-  setFromParam('v-order',  'order');
-  setFromParam('v-task',   'task');
-  setFromParam('v-date',   'date');
-  setFromParam('v-people', 'people');
+    if (val && val !== 'null' && val.trim() !== '') setVal(id, decodeURIComponent(val));
+  });
 
-  // PDF 사진 선택
+  /* ── PDF 사진 선택 ── */
   document.getElementById('pdfFileInput').addEventListener('change', function(e) {
     const files = Array.from(e.target.files);
     if (!files.length) return;
     files.forEach(file => {
       const reader = new FileReader();
-      reader.onload = function(ev) {
+      reader.onload = ev => {
         pdfImages.push({ dataUrl: ev.target.result, mime: file.type });
         renderPdfGrid();
       };
@@ -198,27 +200,47 @@
 
   function removePdfImg(i) {
     pdfImages.splice(i, 1);
-    renderPdfGrid();
+    if (!pdfImages.length) document.getElementById('pdf-section').style.display = 'none';
+    else renderPdfGrid();
   }
 
   async function makePdf() {
-    if (!pdfImages.length) { showToast('사진을 먼저 선택하세요'); return; }
-    showToast('PDF 생성 중...');
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-    const W = 210, H = 297;
-    for (let i = 0; i < pdfImages.length; i++) {
-      if (i > 0) doc.addPage();
-      const img = new Image();
-      await new Promise(res => { img.onload = res; img.src = pdfImages[i].dataUrl; });
-      const ratio = Math.min(W / img.width, H / img.height);
-      const w = img.width * ratio, h = img.height * ratio;
-      doc.addImage(pdfImages[i].dataUrl, pdfImages[i].mime === 'image/png' ? 'PNG' : 'JPEG', (W-w)/2, (H-h)/2, w, h);
+    if (!pdfImages.length) { showToast('사진을 먼저 선택하세요', true); return; }
+    const btn = document.getElementById('makePdfBtn');
+    btn.disabled = true; btn.textContent = '⏳ 생성 중...';
+    try {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      const W = 210, H = 297;
+      for (let i = 0; i < pdfImages.length; i++) {
+        if (i > 0) doc.addPage();
+        const imgEl = new Image();
+        await new Promise(res => { imgEl.onload = res; imgEl.src = pdfImages[i].dataUrl; });
+        const ratio = Math.min(W / imgEl.width, H / imgEl.height);
+        const w = imgEl.width * ratio, h = imgEl.height * ratio;
+        doc.addImage(pdfImages[i].dataUrl,
+          pdfImages[i].mime === 'image/png' ? 'PNG' : 'JPEG',
+          (W - w) / 2, (H - h) / 2, w, h);
+      }
+      const now = new Date();
+      const date = `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}`;
+      doc.save(`permit_${date}.pdf`);
+      showToast('PDF 저장 완료!');
+    } catch(e) {
+      showToast('PDF 생성 오류: ' + e.message, true);
+    } finally {
+      btn.disabled = false; btn.textContent = '📄 PDF 생성하기';
     }
-    const now = new Date();
-    doc.save(`작업허가서_${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}.pdf`);
-    showToast('PDF 저장 완료!');
   }
+
+  /* ── 유틸 ── */
+  function copyTask() {
+    const val = document.getElementById('v-task').textContent;
+    if (val === '—') return;
+    navigator.clipboard.writeText(val).catch(() => fallbackCopy(val));
+  }
+
+  function pad(n) { return String(n).padStart(2,'0'); }
 
   function setVal(id, val) {
     const el = document.getElementById(id);
@@ -231,29 +253,36 @@
     }
   }
 
-  function showToast(msg) {
+  function showToast(msg, isErr) {
     const t = document.getElementById('toast');
     t.textContent = msg;
-    t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 1800);
+    t.className   = 'toast show' + (isErr ? ' error' : '');
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => t.classList.remove('show'), 2000);
   }
 
-  function copyVal(id, label) {
+  function copyVal(id, label, btn) {
     const val = document.getElementById(id).textContent;
-    if (val === '—') { showToast('값이 없습니다'); return; }
+    if (val === '—') { showToast('값이 없습니다', true); return; }
+    const mark = () => {
+      if (btn) { btn.textContent = '✓'; btn.classList.add('copied'); setTimeout(() => { btn.textContent = '복사'; btn.classList.remove('copied'); }, 1200); }
+    };
     navigator.clipboard.writeText(val)
-      .then(() => showToast(label + ' 복사 완료'))
-      .catch(() => { fallbackCopy(val); showToast(label + ' 복사 완료'); });
+      .then(mark)
+      .catch(() => { fallbackCopy(val); mark(); });
   }
 
   function copyAll() {
-    const lines = [
-      '허가번호 : ' + document.getElementById('v-permit').textContent,
-      '오더번호 : ' + document.getElementById('v-order').textContent,
-      '작업명   : ' + document.getElementById('v-task').textContent,
-      '작업일   : ' + document.getElementById('v-date').textContent,
-      '작업인원 : ' + document.getElementById('v-people').textContent,
-    ].join('\n');
+    const fields = [
+      ['v-permit','허가번호'],
+      ['v-order', '오더번호'],
+      ['v-task',  '작업명  '],
+      ['v-date',  '작업일  '],
+      ['v-people','작업인원'],
+    ];
+    const filled = fields.filter(([id]) => document.getElementById(id).textContent !== '—');
+    if (!filled.length) { showToast('분석 결과가 없습니다', true); return; }
+    const lines = filled.map(([id, label]) => label + ' : ' + document.getElementById(id).textContent).join('\n');
     navigator.clipboard.writeText(lines)
       .then(() => showToast('전체 복사 완료'))
       .catch(() => { fallbackCopy(lines); showToast('전체 복사 완료'); });
@@ -261,9 +290,8 @@
 
   function fallbackCopy(text) {
     const ta = document.createElement('textarea');
-    ta.value = text;
-    document.body.appendChild(ta);
-    ta.select();
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
     document.execCommand('copy');
     document.body.removeChild(ta);
   }
