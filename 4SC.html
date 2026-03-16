@@ -204,94 +204,21 @@
     else renderPdfGrid();
   }
 
-  /* ── EXIF orientation 읽기 ── */
-  function getExifOrientation(dataUrl) {
-    try {
-      const b64 = dataUrl.split(',')[1];
-      const bin = atob(b64.substring(0, 1024));
-      const bytes = new Uint8Array(bin.length);
-      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-      if (bytes[0] !== 0xFF || bytes[1] !== 0xD8) return 1;
-      let offset = 2;
-      while (offset < bytes.length) {
-        if (bytes[offset] !== 0xFF) break;
-        const marker = bytes[offset + 1];
-        const len = (bytes[offset + 2] << 8) | bytes[offset + 3];
-        if (marker === 0xE1) {
-          const exif = String.fromCharCode(...bytes.slice(offset + 4, offset + 10));
-          if (exif.startsWith('Exif')) {
-            const tiffOffset = offset + 10;
-            const little = bytes[tiffOffset] === 0x49;
-            const read16 = o => little ? (bytes[tiffOffset+o] | bytes[tiffOffset+o+1]<<8) : (bytes[tiffOffset+o]<<8 | bytes[tiffOffset+o+1]);
-            const read32 = o => little ? (bytes[tiffOffset+o] | bytes[tiffOffset+o+1]<<8 | bytes[tiffOffset+o+2]<<16 | bytes[tiffOffset+o+3]<<24) : (bytes[tiffOffset+o]<<24 | bytes[tiffOffset+o+1]<<16 | bytes[tiffOffset+o+2]<<8 | bytes[tiffOffset+o+3]);
-            const ifdOffset = read32(4);
-            const entries = read16(ifdOffset);
-            for (let e = 0; e < entries; e++) {
-              const eOff = ifdOffset + 2 + e * 12;
-              if (read16(eOff) === 0x0112) return read16(eOff + 8);
-            }
-          }
-        }
-        offset += 2 + len;
-      }
-    } catch(e) {}
-    return 1;
-  }
-
-  /* ── EXIF 보정된 canvas dataUrl 반환 ── */
-  function fixOrientation(dataUrl, orientation) {
-    return new Promise(resolve => {
-      const img = new Image();
-      img.onload = () => {
-        const swap = orientation >= 5;
-        const w = swap ? img.height : img.width;
-        const h = swap ? img.width  : img.height;
-        const canvas = document.createElement('canvas');
-        canvas.width = w; canvas.height = h;
-        const ctx = canvas.getContext('2d');
-        switch (orientation) {
-          case 2: ctx.transform(-1,0,0,1,w,0); break;
-          case 3: ctx.transform(-1,0,0,-1,w,h); break;
-          case 4: ctx.transform(1,0,0,-1,0,h); break;
-          case 5: ctx.transform(0,1,1,0,0,0); break;
-          case 6: ctx.transform(0,1,-1,0,h,0); break;
-          case 7: ctx.transform(0,-1,-1,0,h,w); break;
-          case 8: ctx.transform(0,-1,1,0,0,w); break;
-        }
-        ctx.drawImage(img, 0, 0);
-        resolve(canvas.toDataURL('image/jpeg', 0.92));
-      };
-      img.src = dataUrl;
-    });
-  }
-
   async function makePdf() {
     if (!pdfImages.length) { showToast('사진을 먼저 선택하세요', true); return; }
     const btn = document.getElementById('makePdfBtn');
     btn.disabled = true; btn.textContent = '⏳ 생성 중...';
     try {
       const { jsPDF } = window.jspdf;
-      let doc = null;
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      const W = 210, H = 297;
       for (let i = 0; i < pdfImages.length; i++) {
-        // EXIF 보정
-        const orientation = getExifOrientation(pdfImages[i].dataUrl);
-        const fixedDataUrl = orientation > 1
-          ? await fixOrientation(pdfImages[i].dataUrl, orientation)
-          : pdfImages[i].dataUrl;
-
+        if (i > 0) doc.addPage();
         const imgEl = new Image();
-        await new Promise(res => { imgEl.onload = res; imgEl.src = fixedDataUrl; });
-        const landscape = imgEl.width < imgEl.height;
-        const W = landscape ? 297 : 210;
-        const H = landscape ? 210 : 297;
-        if (!doc) {
-          doc = new jsPDF({ orientation: landscape ? 'landscape' : 'portrait', unit: 'mm', format: 'a4' });
-        } else {
-          doc.addPage('a4', landscape ? 'landscape' : 'portrait');
-        }
+        await new Promise(res => { imgEl.onload = res; imgEl.src = pdfImages[i].dataUrl; });
         const ratio = Math.min(W / imgEl.width, H / imgEl.height);
         const w = imgEl.width * ratio, h = imgEl.height * ratio;
-        doc.addImage(fixedDataUrl, 'JPEG', (W - w) / 2, (H - h) / 2, w, h);
+        doc.addImage(pdfImages[i].dataUrl, 'JPEG', (W - w) / 2, (H - h) / 2, w, h);
       }
       const now = new Date();
       const date = `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}`;
