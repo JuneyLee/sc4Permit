@@ -73,7 +73,7 @@
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   .toast.error { background: rgba(192,57,43,0.9); }
 
-  #api-error { display: none; background: #fdf0ee; border: 1px solid #e74c3c; border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; font-size: 13px; color: #c0392b; line-height: 1.5; }
+  #api-error { display: none; background: #fdf0ee; border: 1px solid #e74c3c; border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; font-size: 13px; color: #c0392b; line-height: 1.6; white-space: pre-wrap; word-break: break-all; }
 </style>
 </head>
 <body>
@@ -341,7 +341,12 @@
       setVal('v-people', data['작업인원']);
       showToast('분석 완료 ✓');
     } catch(e) {
-      showApiError('분석 오류가 발생했습니다\n' + e.message);
+      showApiError(
+        '분석 오류가 발생했습니다\n' +
+        'type: ' + e.name + '\n' +
+        'message: ' + e.message + '\n' +
+        'GAS_URL: ' + GAS_URL
+      );
     } finally {
       document.getElementById('loading').style.display      = 'none';
       document.getElementById('reanalyzeBtn').style.display = 'block';
