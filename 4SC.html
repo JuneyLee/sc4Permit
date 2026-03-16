@@ -171,8 +171,9 @@
     if (!files.length) return;
     files.forEach(file => {
       const reader = new FileReader();
-      reader.onload = ev => {
-        pdfImages.push({ dataUrl: ev.target.result, mime: file.type });
+      reader.onload = async ev => {
+        const fixed = await correctOrientation(ev.target.result);
+        pdfImages.push({ dataUrl: fixed, mime: 'image/jpeg' });
         renderPdfGrid();
       };
       reader.readAsDataURL(file);
@@ -275,13 +276,9 @@
         if (i > 0) doc.addPage();
         const imgEl = new Image();
         await new Promise(res => { imgEl.onload = res; imgEl.src = pdfImages[i].dataUrl; });
-        // EXIF orientation 보정
-        const fixedUrl = await correctOrientation(pdfImages[i].dataUrl);
-        const fixedImg = new Image();
-        await new Promise(res => { fixedImg.onload = res; fixedImg.src = fixedUrl; });
-        const ratio = Math.min(W / fixedImg.width, H / fixedImg.height);
-        const w = fixedImg.width * ratio, h = fixedImg.height * ratio;
-        doc.addImage(fixedUrl, 'JPEG', (W - w) / 2, (H - h) / 2, w, h);
+        const ratio = Math.min(W / imgEl.width, H / imgEl.height);
+        const w = imgEl.width * ratio, h = imgEl.height * ratio;
+        doc.addImage(pdfImages[i].dataUrl, 'JPEG', (W - w) / 2, (H - h) / 2, w, h);
       }
       const now = new Date();
       const date = `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}`;
