@@ -207,61 +207,7 @@
 
   /* ── EXIF orientation 보정 ── */
   function correctOrientation(dataUrl) {
-    return new Promise(resolve => {
-      const img = new Image();
-      img.onload = () => {
-        // EXIF 읽기
-        let orientation = 1;
-        try {
-          const b64 = dataUrl.split(',')[1];
-          const bin = atob(b64.slice(0, 8192));
-          const bytes = new Uint8Array(bin.length);
-          for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-          if (bytes[0] === 0xFF && bytes[1] === 0xD8) {
-            let off = 2;
-            while (off < bytes.length - 4) {
-              if (bytes[off] !== 0xFF) break;
-              const mk = bytes[off+1], len = (bytes[off+2]<<8)|bytes[off+3];
-              if (mk === 0xE1 && String.fromCharCode(...bytes.slice(off+4,off+10)).startsWith('Exif')) {
-                const t = off + 10;
-                const le = bytes[t] === 0x49;
-                const r16 = o => le ? bytes[t+o]|(bytes[t+o+1]<<8) : (bytes[t+o]<<8)|bytes[t+o+1];
-                const r32 = o => le ? bytes[t+o]|(bytes[t+o+1]<<8)|(bytes[t+o+2]<<16)|(bytes[t+o+3]<<24) : (bytes[t+o]<<24)|(bytes[t+o+1]<<16)|(bytes[t+o+2]<<8)|bytes[t+o+3];
-                const ifd = r32(4), n = r16(ifd);
-                for (let e = 0; e < n; e++) {
-                  const eo = ifd + 2 + e * 12;
-                  if (r16(eo) === 0x0112) { orientation = r16(eo+8); break; }
-                }
-              }
-              off += 2 + len;
-            }
-          }
-        } catch(e) {}
-
-        if (orientation === 1) { resolve(dataUrl); return; }
-
-        const swap = orientation >= 5;
-        const cw = swap ? img.height : img.width;
-        const ch = swap ? img.width  : img.height;
-        const canvas = document.createElement('canvas');
-        canvas.width = cw; canvas.height = ch;
-        const ctx = canvas.getContext('2d');
-        ctx.save();
-        switch (orientation) {
-          case 2: ctx.transform(-1,0,0,1,cw,0); break;
-          case 3: ctx.transform(-1,0,0,-1,cw,ch); break;
-          case 4: ctx.transform(1,0,0,-1,0,ch); break;
-          case 5: ctx.transform(0,1,1,0,0,0); break;
-          case 6: ctx.translate(cw,0); ctx.rotate(Math.PI/2); break;
-          case 7: ctx.transform(0,-1,-1,0,ch,cw); break;
-          case 8: ctx.translate(0,ch); ctx.rotate(-Math.PI/2); break;
-        }
-        ctx.drawImage(img, 0, 0);
-        ctx.restore();
-        resolve(canvas.toDataURL('image/jpeg', 0.92));
-      };
-      img.src = dataUrl;
-    });
+    return new Promise(resolve => resolve(dataUrl));
   }
 
   async function makePdf() {
@@ -276,9 +222,24 @@
         if (i > 0) doc.addPage();
         const imgEl = new Image();
         await new Promise(res => { imgEl.onload = res; imgEl.src = pdfImages[i].dataUrl; });
-        const ratio = Math.min(W / imgEl.width, H / imgEl.height);
-        const w = imgEl.width * ratio, h = imgEl.height * ratio;
-        doc.addImage(pdfImages[i].dataUrl, 'JPEG', (W - w) / 2, (H - h) / 2, w, h);
+
+        // 가로 사진이면 90도 회전
+        let finalUrl = pdfImages[i].dataUrl;
+        if (imgEl.width > imgEl.height) {
+          const canvas = document.createElement('canvas');
+          canvas.width = imgEl.height; canvas.height = imgEl.width;
+          const ctx = canvas.getContext('2d');
+          ctx.translate(0, imgEl.width);
+          ctx.rotate(-Math.PI / 2);
+          ctx.drawImage(imgEl, 0, 0);
+          finalUrl = canvas.toDataURL('image/jpeg', 0.92);
+        }
+
+        const finalImg = new Image();
+        await new Promise(res => { finalImg.onload = res; finalImg.src = finalUrl; });
+        const ratio = Math.min(W / finalImg.width, H / finalImg.height);
+        const w = finalImg.width * ratio, h = finalImg.height * ratio;
+        doc.addImage(finalUrl, 'JPEG', (W - w) / 2, (H - h) / 2, w, h);
       }
       const now = new Date();
       const date = `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}`;
