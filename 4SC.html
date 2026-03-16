@@ -214,7 +214,7 @@
         let orientation = 1;
         try {
           const b64 = dataUrl.split(',')[1];
-          const bin = atob(b64.slice(0, 2048));
+          const bin = atob(b64.slice(0, 8192));
           const bytes = new Uint8Array(bin.length);
           for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
           if (bytes[0] === 0xFF && bytes[1] === 0xD8) {
