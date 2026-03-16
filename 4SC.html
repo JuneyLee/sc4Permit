@@ -216,9 +216,17 @@
         if (i > 0) doc.addPage();
         const imgEl = new Image();
         await new Promise(res => { imgEl.onload = res; imgEl.src = pdfImages[i].dataUrl; });
-        const ratio = Math.min(W / imgEl.width, H / imgEl.height);
-        const w = imgEl.width * ratio, h = imgEl.height * ratio;
-        doc.addImage(pdfImages[i].dataUrl, 'JPEG', (W - w) / 2, (H - h) / 2, w, h);
+        // 이미지 90도 회전 보정
+        const canvas = document.createElement('canvas');
+        canvas.width = imgEl.height; canvas.height = imgEl.width;
+        const ctx = canvas.getContext('2d');
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+        ctx.rotate(90 * Math.PI / 180);
+        ctx.drawImage(imgEl, -imgEl.width / 2, -imgEl.height / 2);
+        const rotatedUrl = canvas.toDataURL('image/jpeg', 0.92);
+        const ratio = Math.min(W / canvas.width, H / canvas.height);
+        const w = canvas.width * ratio, h = canvas.height * ratio;
+        doc.addImage(rotatedUrl, 'JPEG', (W - w) / 2, (H - h) / 2, w, h);
       }
       const now = new Date();
       const date = `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}`;
