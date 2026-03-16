@@ -176,7 +176,7 @@
   let analyzeBase64 = '';
   let analyzeMime   = '';
   let pdfImages = [];
-  const GAS_URL = 'https://script.google.com/macros/s/AKfycbxU1yvKmTxsBZys0LgWKYi5MMvCFp3EJICEei0pq3K72xyVuW-CV54tSpxD7GqmOD0V/exec';
+  const GAS_URL = 'https://script.google.com/macros/s/AKfycbwqkC8Bvx8aCVjEUuOpXFeoo5nTCo6k_QRgTquJNofRM-IxZB2rEnBhv44ZBZiTpXut/exec';
 
   /* ── URL 파라미터 처리 ── */
   const params = new URLSearchParams(window.location.search);
@@ -318,8 +318,9 @@
     try {
       const res = await fetch(GAS_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image: analyzeBase64, mime: 'image/jpeg' })
+        headers: { 'Content-Type': 'text/plain' },  // GAS CORS 우회
+        body: JSON.stringify({ image: analyzeBase64, mime: 'image/jpeg' }),
+        redirect: 'follow'
       });
       const data = await res.json();
 
