@@ -210,12 +210,18 @@
     btn.disabled = true; btn.textContent = '⏳ 생성 중...';
     try {
       const { jsPDF } = window.jspdf;
-      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-      const W = 210, H = 297;
+      let doc = null;
       for (let i = 0; i < pdfImages.length; i++) {
-        if (i > 0) doc.addPage();
         const imgEl = new Image();
         await new Promise(res => { imgEl.onload = res; imgEl.src = pdfImages[i].dataUrl; });
+        const landscape = imgEl.width > imgEl.height;
+        const W = landscape ? 297 : 210;
+        const H = landscape ? 210 : 297;
+        if (!doc) {
+          doc = new jsPDF({ orientation: landscape ? 'landscape' : 'portrait', unit: 'mm', format: 'a4' });
+        } else {
+          doc.addPage('a4', landscape ? 'landscape' : 'portrait');
+        }
         const ratio = Math.min(W / imgEl.width, H / imgEl.height);
         const w = imgEl.width * ratio, h = imgEl.height * ratio;
         doc.addImage(pdfImages[i].dataUrl,
