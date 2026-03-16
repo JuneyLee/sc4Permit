@@ -171,10 +171,19 @@
     if (!files.length) return;
     files.forEach(file => {
       const reader = new FileReader();
-      reader.onload = async ev => {
-        const fixed = await correctOrientation(ev.target.result);
-        pdfImages.push({ dataUrl: fixed, mime: 'image/jpeg' });
-        renderPdfGrid();
+      reader.onload = ev => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.height; canvas.height = img.width;
+          const ctx = canvas.getContext('2d');
+          ctx.translate(0, img.width);
+          ctx.rotate(-Math.PI / 2);
+          ctx.drawImage(img, 0, 0);
+          pdfImages.push({ dataUrl: canvas.toDataURL('image/jpeg', 0.92), mime: 'image/jpeg' });
+          renderPdfGrid();
+        };
+        img.src = ev.target.result;
       };
       reader.readAsDataURL(file);
     });
@@ -205,11 +214,6 @@
     else renderPdfGrid();
   }
 
-  /* ── EXIF orientation 보정 ── */
-  function correctOrientation(dataUrl) {
-    return new Promise(resolve => resolve(dataUrl));
-  }
-
   async function makePdf() {
     if (!pdfImages.length) { showToast('사진을 먼저 선택하세요', true); return; }
     const btn = document.getElementById('makePdfBtn');
@@ -222,24 +226,9 @@
         if (i > 0) doc.addPage();
         const imgEl = new Image();
         await new Promise(res => { imgEl.onload = res; imgEl.src = pdfImages[i].dataUrl; });
-
-        // 가로 사진이면 90도 회전
-        let finalUrl = pdfImages[i].dataUrl;
-        if (imgEl.width > imgEl.height) {
-          const canvas = document.createElement('canvas');
-          canvas.width = imgEl.height; canvas.height = imgEl.width;
-          const ctx = canvas.getContext('2d');
-          ctx.translate(0, imgEl.width);
-          ctx.rotate(-Math.PI / 2);
-          ctx.drawImage(imgEl, 0, 0);
-          finalUrl = canvas.toDataURL('image/jpeg', 0.92);
-        }
-
-        const finalImg = new Image();
-        await new Promise(res => { finalImg.onload = res; finalImg.src = finalUrl; });
-        const ratio = Math.min(W / finalImg.width, H / finalImg.height);
-        const w = finalImg.width * ratio, h = finalImg.height * ratio;
-        doc.addImage(finalUrl, 'JPEG', (W - w) / 2, (H - h) / 2, w, h);
+        const ratio = Math.min(W / imgEl.width, H / imgEl.height);
+        const w = imgEl.width * ratio, h = imgEl.height * ratio;
+        doc.addImage(pdfImages[i].dataUrl, 'JPEG', (W - w) / 2, (H - h) / 2, w, h);
       }
       const now = new Date();
       const date = `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}`;
