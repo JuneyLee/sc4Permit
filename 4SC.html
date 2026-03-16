@@ -281,7 +281,7 @@
 
         const imgEl = new Image();
         await new Promise(res => { imgEl.onload = res; imgEl.src = fixedDataUrl; });
-        const landscape = imgEl.width > imgEl.height;
+        const landscape = imgEl.width < imgEl.height;
         const W = landscape ? 297 : 210;
         const H = landscape ? 210 : 297;
         if (!doc) {
