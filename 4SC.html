@@ -176,10 +176,8 @@
         img.onload = () => {
           // -90도 회전해서 저장
           const canvas = document.createElement('canvas');
-          canvas.width = img.height; canvas.height = img.width;
+          canvas.width = img.width; canvas.height = img.height;
           const ctx = canvas.getContext('2d');
-          ctx.translate(img.height, 0);
-          ctx.rotate(Math.PI / 2);
           ctx.drawImage(img, 0, 0);
           pdfImages.push({ dataUrl: canvas.toDataURL('image/jpeg', 0.92), mime: 'image/jpeg' });
           renderPdfGrid();
