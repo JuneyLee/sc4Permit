@@ -307,6 +307,29 @@
     reader.readAsDataURL(file);
   }
 
+  /* ── JSONP로 API 키 받기 ── */
+  function fetchApiKey() {
+    return new Promise((resolve, reject) => {
+      const cbName = 'cb_' + Date.now();
+      const script = document.createElement('script');
+      const timer  = setTimeout(() => {
+        delete window[cbName];
+        document.body.removeChild(script);
+        reject(new Error('GAS 응답 시간 초과'));
+      }, 10000);
+      window[cbName] = function(data) {
+        clearTimeout(timer);
+        delete window[cbName];
+        document.body.removeChild(script);
+        if (data && data.key) resolve(data.key);
+        else reject(new Error('키 없음'));
+      };
+      script.src = GAS_URL + '?callback=' + cbName;
+      script.onerror = () => { clearTimeout(timer); reject(new Error('스크립트 로드 실패')); };
+      document.body.appendChild(script);
+    });
+  }
+
   /* ── Gemini 분석 ── */
   async function analyze() {
     if (!analyzeBase64) return;
@@ -316,37 +339,54 @@
     document.getElementById('loading').style.display      = 'block';
 
     try {
-      const res = await fetch(GAS_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain' },  // GAS CORS 우회
-        body: JSON.stringify({ image: analyzeBase64, mime: 'image/jpeg' }),
-        redirect: 'follow'
-      });
+      // 1. GAS에서 API 키 받기 (JSONP)
+      const apiKey = await fetchApiKey();
+
+      // 2. Gemini 직접 호출
+      const prompt = `작업허가서를 촬영한 사진입니다.
+유효한 JSON 객체만 출력하세요. JSON 외 텍스트 없이.
+작업명이 두 줄에 걸쳐 있을 수 있으니 이어서 인식하세요.
+작업인원은 숫자만 추출하세요 (예: "3명" → "3").
+값을 읽을 수 없으면 null.
+{"허가번호":"","오더번호":"","작업명":"","작업일":"","작업인원":""}`;
+
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [
+              { text: prompt },
+              { inline_data: { mime_type: 'image/jpeg', data: analyzeBase64 } }
+            ]}]
+          })
+        }
+      );
       const data = await res.json();
 
       if (data.error) {
-        const msg = data.error;
-        if (msg.includes('quota') || msg.includes('RESOURCE_EXHAUSTED')) {
+        const msg = data.error.message || '';
+        if (data.error.code === 429 || msg.includes('quota') || msg.includes('RESOURCE_EXHAUSTED')) {
           showApiError('⚠️ 무료 API 한도 초과\n오늘 사용량이 한계에 도달했습니다. 내일 다시 시도하세요.');
         } else {
-          showApiError('오류: ' + msg);
+          showApiError('Gemini 오류 ' + data.error.code + '\n' + msg);
         }
         return;
       }
 
-      setVal('v-permit', data['허가번호']);
-      setVal('v-order',  data['오더번호']);
-      setVal('v-task',   data['작업명']);
-      setVal('v-date',   data['작업일']);
-      setVal('v-people', data['작업인원']);
+      let text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      text = text.replace(/```json/g,'').replace(/```/g,'').trim();
+      const json = JSON.parse(text);
+      setVal('v-permit', json['허가번호']);
+      setVal('v-order',  json['오더번호']);
+      setVal('v-task',   json['작업명']);
+      setVal('v-date',   json['작업일']);
+      setVal('v-people', json['작업인원']);
       showToast('분석 완료 ✓');
+
     } catch(e) {
-      showApiError(
-        '분석 오류가 발생했습니다\n' +
-        'type: ' + e.name + '\n' +
-        'message: ' + e.message + '\n' +
-        'GAS_URL: ' + GAS_URL
-      );
+      showApiError('분석 오류\ntype: ' + e.name + '\nmessage: ' + e.message);
     } finally {
       document.getElementById('loading').style.display      = 'none';
       document.getElementById('reanalyzeBtn').style.display = 'block';
