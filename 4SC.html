@@ -178,8 +178,8 @@
           const canvas = document.createElement('canvas');
           canvas.width = img.height; canvas.height = img.width;
           const ctx = canvas.getContext('2d');
-          ctx.translate(0, img.width);
-          ctx.rotate(-Math.PI / 2);
+          ctx.translate(img.height, 0);
+          ctx.rotate(Math.PI / 2);
           ctx.drawImage(img, 0, 0);
           pdfImages.push({ dataUrl: canvas.toDataURL('image/jpeg', 0.92), mime: 'image/jpeg' });
           renderPdfGrid();
