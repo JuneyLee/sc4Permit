@@ -1,74 +1,31 @@
-// ─────────────────────────────────────────────
-//  작업허가서 Gemini 분석 프록시
-//  배포: 웹 앱 / 실행: 나 / 액세스: 모든 사용자
-// ─────────────────────────────────────────────
-
-const GEMINI_KEY = PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY');
-
-function doPost(e) {
-  // CORS preflight 대응
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Content-Type': 'application/json'
-  };
-
-  try {
-    const body   = JSON.parse(e.postData.contents);
-    const base64 = body.image;
-    const mime   = body.mime || 'image/jpeg';
-
-    if (!base64) {
-      return makeResponse({ error: '이미지 데이터가 없습니다' }, headers);
-    }
-
-    const prompt = `작업허가서를 촬영한 사진입니다.
-유효한 JSON 객체만 출력하세요. JSON 외 텍스트 없이.
-작업명이 두 줄에 걸쳐 있을 수 있으니 이어서 인식하세요.
-작업인원은 숫자만 추출하세요 (예: "3명" → "3").
-값을 읽을 수 없으면 null.
-{"허가번호":"","오더번호":"","작업명":"","작업일":"","작업인원":""}`;
-
-    const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + GEMINI_KEY;
-
-    const resp = UrlFetchApp.fetch(url, {
-      method: 'post',
-      contentType: 'application/json',
-      payload: JSON.stringify({
-        contents: [{ parts: [
-          { text: prompt },
-          { inline_data: { mime_type: mime, data: base64 } }
-        ]}]
-      }),
-      muteHttpExceptions: true
-    });
-
-    const geminiData = JSON.parse(resp.getContentText());
-
-    if (geminiData.error) {
-      return makeResponse({ error: geminiData.error.message || 'Gemini 오류' }, headers);
-    }
-
-    let text = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    text = text.replace(/```json/g, '').replace(/```/g, '').trim();
-    const result = JSON.parse(text);
-
-    return makeResponse(result, headers);
-
-  } catch (err) {
-    return makeResponse({ error: err.message }, headers);
-  }
-}
-
+/**
+ * 웹 앱 접속 시 실행되는 기본 함수
+ * @param {Object} e - 이벤트 객체
+ * @return {HtmlOutput} - 브라우저에 표시될 HTML 결과물
+ */
 function doGet(e) {
-  return makeResponse({ status: 'ok', message: '작업허가서 분석 프록시 정상 동작 중' }, {
-    'Content-Type': 'application/json'
-  });
+  // HTML 파일을 생성합니다. ('Index'는 사용자가 만든 .html 파일 이름)
+  const htmlOutput = HtmlService.createTemplateFromFile('Index').evaluate();
+  
+  // 모바일 기기에서 화면 비율을 유지하기 위한 메타 태그 설정
+  htmlOutput.addMetaTag('viewport', 'width=device-width, initial-scale=1');
+  
+  // 제목 설정
+  htmlOutput.setTitle('시스템 관리');
+  
+  /**
+   * [중요] iframe 삽입 허용 설정
+   * 이 설정이 없으면 외부 사이트의 iframe에서 구글 앱 스크립트를 불러올 수 없습니다.
+   */
+  htmlOutput.setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  
+  return htmlOutput;
 }
 
-function makeResponse(obj, headers) {
-  const output = ContentService.createTextOutput(JSON.stringify(obj))
-    .setMimeType(ContentService.MimeType.JSON);
-  return output;
+/**
+ * 필요한 경우 외부 라이브러리나 데이터를 가져오는 함수 예시
+ */
+function getData() {
+  // 데이터 처리 로직
+  return "Hello from GAS!";
 }
