@@ -2,27 +2,22 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>페이지 이동 중...</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>작업허가서 분석 시스템</title>
     <script>
-        // 접속자의 기기 정보를 확인합니다.
         const ua = navigator.userAgent;
         const isIOS = /iPhone|iPad|iPod/i.test(ua) || (/CriOS|FxiOS|OPiOS/i.test(ua));
 
         if (isIOS) {
-            // 1. 아이폰/아이패드 사용자라면: 새로 만든 리액트 앱 페이지로 이동
-            // (GitHub Pages에 배포된 리액트 앱의 경로를 입력하세요)
-            location.replace('https://juneylee.github.io/sc4Permit/4SC.html');
+            // 아이폰 사용자 -> 4SC.html로 이동
+            location.replace('4SC.html');
         } else {
-            // 2. 그 외(안드로이드, PC 등) 사용자라면: 기존 GAS 웹 앱으로 이동
-            location.replace('https://script.google.com/macros/s/AKfycbyxMbFpCd_5YUPS8ZkcxbLL-LMC_Wqk0sTwPUSY5FZMo9iF95z_FeZ1vRXXrEWuEC4O/exec');
+            // 안드로이드/PC 사용자 -> AndApp.html로 이동
+            location.replace('AndApp.html');
         }
     </script>
 </head>
 <body>
-    <!-- 혹시라도 리다이렉트가 안 될 경우를 대비한 안내 문구 -->
-    <p style="text-align:center; margin-top:50px; font-family:sans-serif;">
-        페이지를 이동 중입니다. 잠시만 기다려주세요...<br>
-        자동으로 이동하지 않으면 <a href="https://juneylee.github.io/sc4Permit/4SC.html">여기</a>를 클릭하세요.
-    </p>
+    <p style="text-align:center; margin-top:50px;">페이지 이동 중...</p>
 </body>
 </html>
