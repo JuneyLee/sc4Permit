@@ -250,7 +250,13 @@
               <div className="pdf-preview-grid">
                 {pdfImages.map((img, i) => (
                   <div key={i} className="pdf-thumb">
-                    <img src={img.dataUrl} />
+                    <img 
+                      src={img.dataUrl} 
+                      style={{ 
+                        filter: isBW ? 'grayscale(100%) contrast(150%) brightness(110%)' : 'none',
+                        transition: 'filter 0.3s'
+                      }} 
+                    />
                     <button className="del-btn" onClick={() => removePdfImg(i)}>×</button>
                   </div>
                 ))}
