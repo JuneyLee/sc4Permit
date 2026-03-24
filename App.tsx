@@ -113,7 +113,7 @@ export default function App() {
     setIsAnalyzing(true);
     
     // ⚠️ 여기에 본인의 GAS 웹 앱 URL을 넣으세요
-    const GAS_URL = "여기에_복사한_GAS_웹_앱_URL_입력";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbyxMbFpCd_5YUPS8ZkcxbLL-LMC_Wqk0sTwPUSY5FZMo9iF95z_FeZ1vRXXrEWuEC4O/exec";
 
     try {
       const response = await fetch(GAS_URL, {
