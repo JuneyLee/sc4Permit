@@ -72,7 +72,7 @@
       const [toast, setToast] = useState({ show: false, msg: "", isErr: false });
       
       // GAS URL (사용자님의 실제 배포 주소로 바꿔주세요)
-      const GAS_URL = "https://script.google.com/macros/s/AKfycbyxMbFpCd_5YUPS8ZkcxbLL-LMC_Wqk0sTwPUSY5FZMo9iF95z_FeZ1vRXXrEWuEC4O/exec";
+      const GAS_URL = "https://script.google.com/macros/s/.../exec";
 
       const showToast = (msg, isErr = false) => {
         setToast({ show: true, msg, isErr });
@@ -137,23 +137,34 @@
           img.onload = () => {
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
-            canvas.width = img.width;
-            canvas.height = img.height;
+            
+            // 원본 해상도 그대로 반영 (naturalWidth 사용)
+            const width = img.naturalWidth || img.width;
+            const height = img.naturalHeight || img.height;
+            canvas.width = width;
+            canvas.height = height;
+            
             ctx.drawImage(img, 0, 0);
             
             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
             const data = imageData.data;
             
-            // 흑백 변환 (Thresholding)
+            // 고대비 그레이스케일 변환 (스캔 효과)
             for (let i = 0; i < data.length; i += 4) {
-              const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
-              // 임계값 128 기준으로 0(검정) 또는 255(흰색)
-              const val = avg > 128 ? 255 : 0;
-              data[i] = data[i + 1] = data[i + 2] = val;
+              const r = data[i], g = data[i+1], b = data[i+2];
+              let v = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+              
+              const contrast = 1.4; 
+              const brightness = 20;
+              v = (v - 128) * contrast + 128 + brightness;
+              
+              const finalVal = v < 0 ? 0 : (v > 255 ? 255 : v);
+              data[i] = data[i + 1] = data[i + 2] = finalVal;
             }
             
             ctx.putImageData(imageData, 0, 0);
-            resolve(canvas.toDataURL('image/jpeg', 0.8));
+            // 최고 화질(1.0)로 내보내기
+            resolve(canvas.toDataURL('image/jpeg', 1.0));
           };
           img.src = dataUrl;
         });
@@ -180,7 +191,8 @@
             const ratio = Math.min(W / imgEl.width, H / imgEl.height);
             const w = imgEl.width * ratio, h = imgEl.height * ratio;
             
-            doc.addImage(targetUrl, 'JPEG', (W - w) / 2, (H - h) / 2, w, h);
+            // 압축 없이(NONE) 이미지 추가하여 화질 보존
+            doc.addImage(targetUrl, 'JPEG', (W - w) / 2, (H - h) / 2, w, h, undefined, 'NONE');
           }
           
           const now = new Date();
