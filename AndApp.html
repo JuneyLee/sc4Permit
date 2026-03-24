@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-  <title>작업허가서 분석 (Android/PC)</title>
+  <title>작업허가서 분석 (안드로이드/PC)</title>
   <!-- React & Tailwind CDN -->
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -45,6 +45,16 @@
     .pdf-thumb .del-btn { position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.6); color: white; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
     .pdf-add-btn { border-radius: 8px; border: 2px dashed #8e44ad; background: #f8f0fd; color: #8e44ad; font-size: 24px; aspect-ratio: 3/4; display: flex; align-items: center; justify-content: center; cursor: pointer; }
     .btn-make-pdf { width: 100%; padding: 13px; background: linear-gradient(135deg, #8e44ad, #6c3483); color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: bold; cursor: pointer; margin-bottom: 16px; box-shadow: 0 3px 8px rgba(142,68,173,0.3); }
+
+    /* 토글 스위치 */
+    .switch-container { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-bottom: 12px; padding-right: 4px; }
+    .switch-label { font-size: 13px; color: #555; font-weight: 600; }
+    .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
+    .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+    input:checked + .slider { background-color: #8e44ad; }
+    input:checked + .slider:before { transform: translateX(20px); }
   </style>
 </head>
 <body>
@@ -58,6 +68,7 @@
       const [pdfLoading, setPdfLoading] = useState(false);
       const [result, setResult] = useState(null);
       const [pdfImages, setPdfImages] = useState([]);
+      const [isBW, setIsBW] = useState(true); // 기본값 흑백 활성
       const [toast, setToast] = useState({ show: false, msg: "", isErr: false });
       
       // GAS URL (사용자님의 실제 배포 주소로 바꿔주세요)
@@ -120,6 +131,34 @@
         }
       };
 
+      const processImageBW = (dataUrl) => {
+        return new Promise((resolve) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0);
+            
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+            
+            // 흑백 변환 (Thresholding)
+            for (let i = 0; i < data.length; i += 4) {
+              const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+              // 임계값 128 기준으로 0(검정) 또는 255(흰색)
+              const val = avg > 128 ? 255 : 0;
+              data[i] = data[i + 1] = data[i + 2] = val;
+            }
+            
+            ctx.putImageData(imageData, 0, 0);
+            resolve(canvas.toDataURL('image/jpeg', 0.8));
+          };
+          img.src = dataUrl;
+        });
+      };
+
       const makePdf = async () => {
         if (!pdfImages.length) { showToast('사진을 먼저 선택하세요', true); return; }
         setPdfLoading(true);
@@ -130,13 +169,18 @@
           
           for (let i = 0; i < pdfImages.length; i++) {
             if (i > 0) doc.addPage();
+            
+            let targetUrl = pdfImages[i].dataUrl;
+            if (isBW) {
+              targetUrl = await processImageBW(targetUrl);
+            }
+
             const imgEl = new Image();
-            await new Promise(res => { imgEl.onload = res; imgEl.src = pdfImages[i].dataUrl; });
+            await new Promise(res => { imgEl.onload = res; imgEl.src = targetUrl; });
             const ratio = Math.min(W / imgEl.width, H / imgEl.height);
             const w = imgEl.width * ratio, h = imgEl.height * ratio;
-            doc.addImage(pdfImages[i].dataUrl,
-              pdfImages[i].mime === 'image/png' ? 'PNG' : 'JPEG',
-              (W - w) / 2, (H - h) / 2, w, h);
+            
+            doc.addImage(targetUrl, 'JPEG', (W - w) / 2, (H - h) / 2, w, h);
           }
           
           const now = new Date();
@@ -192,7 +236,17 @@
 
           {pdfImages.length > 0 && (
             <div className="mb-4">
-              <div className="section-label">PDF 사진 목록 <span className="text-purple-600">{pdfImages.length}장</span></div>
+              <div className="flex justify-between items-end mb-2">
+                <div className="section-label mb-0">PDF 사진 목록 <span className="text-purple-600">{pdfImages.length}장</span></div>
+                <div className="switch-container">
+                  <span className="switch-label">스캔 모드(흑백)</span>
+                  <label className="switch">
+                    <input type="checkbox" checked={isBW} onChange={(e) => setIsBW(e.target.checked)} />
+                    <span className="slider"></span>
+                  </label>
+                </div>
+              </div>
+              
               <div className="pdf-preview-grid">
                 {pdfImages.map((img, i) => (
                   <div key={i} className="pdf-thumb">
