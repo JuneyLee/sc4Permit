@@ -199,13 +199,17 @@
     this.value = '';
   });
 
+  document.getElementById('bw-toggle').addEventListener('change', renderPdfGrid);
+
   function renderPdfGrid() {
     const grid = document.getElementById('pdf-grid');
+    const isBW = document.getElementById('bw-toggle').checked;
     grid.innerHTML = '';
     pdfImages.forEach((img, i) => {
       const div = document.createElement('div');
       div.className = 'pdf-thumb';
-      div.innerHTML = `<img src="${img.dataUrl}"><button class="del-btn" onclick="removePdfImg(${i})">×</button>`;
+      const filterStyle = isBW ? 'filter: grayscale(100%) contrast(150%) brightness(110%);' : '';
+      div.innerHTML = `<img src="${img.dataUrl}" style="${filterStyle} transition: filter 0.3s;"><button class="del-btn" onclick="removePdfImg(${i})">×</button>`;
       grid.appendChild(div);
     });
     const add = document.createElement('div');
