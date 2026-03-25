@@ -71,9 +71,6 @@
       const [isBW, setIsBW] = useState(true); // 기본값 흑백 활성
       const [toast, setToast] = useState({ show: false, msg: "", isErr: false });
       
-      // GAS URL (사용자님의 실제 배포 주소로 바꿔주세요)
-      const GAS_URL = "https://script.google.com/macros/s/.../exec";
-
       const showToast = (msg, isErr = false) => {
         setToast({ show: true, msg, isErr });
         setTimeout(() => setToast({ show: false, msg: "", isErr: false }), 2000);
@@ -112,8 +109,9 @@
         setLoading(true);
         setResult(null);
         try {
-          const response = await fetch(GAS_URL, {
+          const response = await fetch('/api/analyze', {
             method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ image: base64, mime: mime })
           });
           const data = await response.json();
@@ -121,7 +119,14 @@
           if (data.error) {
             showToast(data.error, true);
           } else {
-            setResult(data);
+            // 서버 응답 필드명에 맞춰 매핑
+            setResult({
+              permitNumber: data.permitNumber,
+              orderNumber: data.orderNumber,
+              taskName: data.taskName,
+              taskDate: data.taskDate,
+              workerCount: data.workerCount
+            });
             showToast("분석 완료!");
           }
         } catch (error) {
@@ -163,8 +168,8 @@
             }
             
             ctx.putImageData(imageData, 0, 0);
-            // 최고 화질(1.0)로 내보내기
-            resolve(canvas.toDataURL('image/jpeg', 1.0));
+            // 적절한 화질(0.8)로 내보내어 용량 최적화
+            resolve(canvas.toDataURL('image/jpeg', 0.8));
           };
           img.src = dataUrl;
         });
@@ -349,8 +354,3 @@
       );
     }
 
-    const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(<App />);
-  </script>
-</body>
-</html>
