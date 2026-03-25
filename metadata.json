@@ -1,0 +1,7 @@
+{
+  "name": "작업허가서 분석기 (Work Permit Analyzer)",
+  "description": "작업허가서 사진을 분석하여 주요 정보를 추출하고 PDF를 생성하는 도구입니다.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
