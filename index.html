@@ -7,17 +7,17 @@
     <script>
         const ua = navigator.userAgent;
         const isIOS = /iPhone|iPad|iPod/i.test(ua) || (/CriOS|FxiOS|OPiOS/i.test(ua));
+        
+        // GAS 웹 앱의 기본 주소 (배포 후 주소로 꼭 바꿔주세요!)
+        const GAS_BASE_URL = "https://script.google.com/macros/s/AKfycbyxMbFpCd_5YUPS8ZkcxbLL-LMC_Wqk0sTwPUSY5FZMo9iF95z_FeZ1vRXXrEWuEC4O/exec";
 
         if (isIOS) {
-            // 아이폰 사용자 -> 4SC.html로 이동
-            location.replace('4SC.html');
+            // 아이폰 사용자 -> 4SC 페이지로 이동
+            window.top.location.href = GAS_BASE_URL + "?page=4SC";
         } else {
-            // 안드로이드/PC 사용자 -> AndApp.html로 이동
-            location.replace('AndApp.html');
+            // 안드로이드/PC 사용자 -> AndApp 페이지로 이동
+            window.top.location.href = GAS_BASE_URL + "?page=AndApp";
         }
     </script>
 </head>
 <body>
-    <p style="text-align:center; margin-top:50px;">페이지 이동 중...</p>
-</body>
-</html>
