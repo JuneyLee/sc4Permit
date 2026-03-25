@@ -60,7 +60,15 @@
 <body>
   <div id="root"></div>
 
-  <script type="text/babel">
+  <script type="importmap">
+    {
+      "imports": {
+        "@google/genai": "https://esm.run/@google/genai"
+      }
+    }
+  </script>
+  <script type="text/babel" data-type="module">
+    import { GoogleGenAI, Type } from "@google/genai";
     const { useState, useEffect } = React;
 
     function App() {
@@ -109,26 +117,42 @@
         setLoading(true);
         setResult(null);
         try {
-          const response = await fetch('/api/analyze', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ image: base64, mime: mime })
+          const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+          const response = await ai.models.generateContent({
+            model: "gemini-3-flash-preview",
+            contents: {
+              parts: [
+                { text: "이 이미지는 작업허가서입니다. 이미지에서 허가번호, 오더번호, 작업명, 작업일, 작업인원 정보를 찾아주세요. 결과를 JSON 형식으로 출력하세요. 값을 찾을 수 없는 경우 '—'를 사용하세요." },
+                { inlineData: { data: base64, mimeType: mime || "image/jpeg" } }
+              ]
+            },
+            config: {
+              responseMimeType: "application/json",
+              responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                  permitNumber: { type: Type.STRING, description: "허가번호" },
+                  orderNumber: { type: Type.STRING, description: "오더번호" },
+                  taskName: { type: Type.STRING, description: "작업명" },
+                  taskDate: { type: Type.STRING, description: "작업일" },
+                  workerCount: { type: Type.STRING, description: "작업인원" }
+                },
+                required: ["permitNumber", "orderNumber", "taskName", "taskDate", "workerCount"]
+              }
+            }
           });
-          const data = await response.json();
-          
-          if (data.error) {
-            showToast(data.error, true);
-          } else {
-            setResult({
-              permitNumber: data.permitNumber,
-              orderNumber: data.orderNumber,
-              taskName: data.taskName,
-              taskDate: data.taskDate,
-              workerCount: data.workerCount
-            });
-            showToast("분석 완료!");
-          }
+
+          const data = JSON.parse(response.text || "{}");
+          setResult({
+            permitNumber: data.permitNumber,
+            orderNumber: data.orderNumber,
+            taskName: data.taskName,
+            taskDate: data.taskDate,
+            workerCount: data.workerCount
+          });
+          showToast("분석 완료!");
         } catch (error) {
+          console.error("Analysis error:", error);
           showToast("분석 중 오류가 발생했습니다.", true);
         } finally {
           setLoading(false);
