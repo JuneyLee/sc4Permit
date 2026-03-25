@@ -146,6 +146,7 @@
       const response = await fetch(GAS_URL, {
         method: 'POST',
         mode: 'cors',
+        redirect: 'follow',   // ← 이거 있는지 확인
         headers: {
           'Content-Type': 'text/plain;charset=utf-8',
         },
