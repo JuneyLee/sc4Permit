@@ -140,26 +140,41 @@
     
     try {
       const base64 = dataUrl.split(',')[1];
+      
+      // GAS는 보안상 'application/json'으로 보내면 복잡한 검사(Preflight)를 거칩니다.
+      // 'text/plain'으로 보내면 검사를 건너뛰어 더 빠르고 확실하게 전달됩니다.
       const response = await fetch(GAS_URL, {
         method: 'POST',
+        mode: 'cors',
+        headers: {
+          'Content-Type': 'text/plain;charset=utf-8',
+        },
         body: JSON.stringify({ image: base64, mime: mime })
       });
       
-      if (!response.ok) throw new Error("분석 요청 실패");
+      if (!response.ok) throw new Error("서버 응답 오류 (" + response.status + ")");
       
-      const data = await response.json();
+      const responseText = await response.text();
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (e) {
+        throw new Error("데이터 해석 실패: " + responseText.substring(0, 50));
+      }
+
       if (data.error) throw new Error(data.error);
       
-      setVal('v-permit', data.허가번호);
-      setVal('v-order', data.오더번호);
-      setVal('v-task', data.작업명);
-      setVal('v-date', data.작업일);
-      setVal('v-people', data.작업인원);
+      // GAS 코드의 필드명과 정확히 일치시키기
+      setVal('v-permit', data.허가번호 || data.permit);
+      setVal('v-order', data.오더번호 || data.order);
+      setVal('v-task', data.작업명 || data.task);
+      setVal('v-date', data.작업일 || data.date);
+      setVal('v-people', data.작업인원 || data.people);
       
       showToast('분석 완료!');
     } catch (e) {
-      console.error(e);
-      showToast('오류: ' + e.message, true);
+      console.error("분석 에러 상세:", e);
+      showToast('분석 실패: ' + e.message, true);
     } finally {
       overlay.style.display = 'none';
     }
