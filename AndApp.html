@@ -1,206 +1,273 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-  <title>작업허가서 분석 (안드로이드/PC)</title>
-  <!-- React & Tailwind CDN -->
-  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <style>
-    body { font-family: 'Inter', -apple-system, 'Malgun Gothic', sans-serif; background: #f0f4f8; padding: 16px; min-height: 100vh; }
-    .loader { border-top-color: #3b82f6; animation: spinner 1.5s linear infinite; }
-    @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    
-    .title-card { text-align: center; font-size: 18px; font-weight: bold; color: #1a5276; margin-bottom: 16px; padding: 12px; background: white; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
-    .section-label { font-size: 12px; color: #888; font-weight: bold; letter-spacing: 1px; margin-bottom: 8px; padding-left: 4px; }
-    .card { background: white; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.07); overflow: hidden; }
-    .row { display: flex; align-items: center; padding: 13px 16px; border-bottom: 1px solid #f0f0f0; }
-    .row:last-child { border-bottom: none; }
-    .row-label { font-size: 12px; color: #888; width: 72px; flex-shrink: 0; }
-    .row-value { font-size: 15px; font-weight: 600; color: #1c1c1e; flex: 1; word-break: break-all; }
-    .row-value.empty { color: #ccc; font-weight: normal; font-style: italic; }
-    .copy-btn { background: #e8f1fb; color: #2e75b6; border: none; border-radius: 8px; padding: 6px 12px; font-size: 13px; font-weight: bold; cursor: pointer; flex-shrink: 0; margin-left: 8px; transition: background 0.15s, color 0.15s; }
-    .copy-btn:active { background: #2e75b6; color: white; }
-    
-    .app-btn { flex: 1; display: block; text-align: center; text-decoration: none; padding: 13px 6px; border-radius: 12px; font-size: 13px; font-weight: bold; color: white; box-shadow: 0 3px 8px rgba(0,0,0,0.15); }
-    .btn-pdf { background: linear-gradient(135deg, #8e44ad, #6c3483); }
-    .btn-analyze { background: linear-gradient(135deg, #e67e22, #ca6f1e); }
-    .btn-copy-all { background: linear-gradient(135deg, #d35400, #b94600); }
-    
-    .pdf-preview-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
-    .pdf-thumb { position: relative; border-radius: 8px; overflow: hidden; aspect-ratio: 3/4; background: #ddd; }
-    .pdf-thumb img { width: 100%; height: 100%; object-fit: cover; }
-    .pdf-thumb .del-btn { position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.6); color: white; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-    .pdf-add-btn { border-radius: 8px; border: 2px dashed #8e44ad; background: #f8f0fd; color: #8e44ad; font-size: 24px; aspect-ratio: 3/4; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>작업허가서 분석 (안드로이드/PC)</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, 'Malgun Gothic', sans-serif; background: #f0f4f8; padding: 16px; min-height: 100vh; }
+  .title { text-align: center; font-size: 18px; font-weight: bold; color: #1a5276; margin-bottom: 16px; padding: 12px; background: white; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+  
+  .upload-area { display: flex; gap: 10px; margin-bottom: 16px; }
+  .upload-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 14px 8px; border-radius: 12px; font-size: 14px; font-weight: bold; color: white; cursor: pointer; border: none; gap: 5px; text-align: center; position: relative; }
+  .upload-btn:active { opacity: 0.75; }
+  .upload-btn .icon { font-size: 22px; }
+  .btn-pdf { background: linear-gradient(135deg, #8e44ad, #6c3483); box-shadow: 0 3px 8px rgba(142,68,173,0.3); }
+  .btn-analyze { background: linear-gradient(135deg, #e67e22, #ca6f1e); box-shadow: 0 3px 8px rgba(230,126,34,0.35); }
+  
+  #pdfFileInput, #analyzeFileInput { display: none; }
+  
+  #pdf-section { display: none; margin-bottom: 16px; }
+  .pdf-preview-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+  .pdf-thumb { position: relative; border-radius: 8px; overflow: hidden; aspect-ratio: 3/4; background: #ddd; }
+  .pdf-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .pdf-thumb .del-btn { position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.6); color: white; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .pdf-add-btn { border-radius: 8px; border: 2px dashed #8e44ad; background: #f8f0fd; color: #8e44ad; font-size: 24px; aspect-ratio: 3/4; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  
+  #makePdfBtn { width: 100%; padding: 13px; background: linear-gradient(135deg, #8e44ad, #6c3483); color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: bold; cursor: pointer; margin-bottom: 16px; box-shadow: 0 3px 8px rgba(142,68,173,0.3); }
+  
+  .switch-container { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-bottom: 10px; padding-right: 4px; }
+  .switch-label { font-size: 13px; color: #555; font-weight: 600; }
+  .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
+  .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+  input:checked + .slider { background-color: #8e44ad; }
+  input:checked + .slider:before { transform: translateX(20px); }
+  
+  .section-label { font-size: 12px; color: #888; font-weight: bold; letter-spacing: 1px; margin-bottom: 8px; padding-left: 4px; }
+  .card { background: white; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.07); overflow: hidden; }
+  .row { display: flex; align-items: center; padding: 13px 16px; border-bottom: 1px solid #f0f0f0; }
+  .row:last-child { border-bottom: none; }
+  .row-label { font-size: 12px; color: #888; width: 72px; flex-shrink: 0; }
+  .row-value { font-size: 15px; font-weight: 600; color: #1c1c1e; flex: 1; word-break: break-all; }
+  .row-value.empty { color: #ccc; font-weight: normal; font-style: italic; }
+  .copy-btn { background: #e8f1fb; color: #2e75b6; border: none; border-radius: 8px; padding: 6px 12px; font-size: 13px; font-weight: bold; cursor: pointer; flex-shrink: 0; margin-left: 8px; transition: background 0.15s, color 0.15s; }
+  
+  .copy-all-btn { width: 100%; padding: 13px; background: linear-gradient(135deg, #d35400, #b94600); color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: bold; cursor: pointer; margin-bottom: 20px; box-shadow: 0 3px 8px rgba(211,84,0,0.35); }
+  
+  .app-buttons { display: flex; gap: 10px; margin-bottom: 16px; }
+  .app-btn { flex: 1; display: block; text-align: center; text-decoration: none; padding: 13px 6px; border-radius: 12px; font-size: 13px; font-weight: bold; color: white; box-shadow: 0 3px 8px rgba(0,0,0,0.15); }
+  .btn-safety { background: linear-gradient(135deg, #1e8449, #196f3d); }
+  .btn-kakao  { background: linear-gradient(135deg, #f9e000, #e6c800); color: #3c1e1e; }
+  .btn-band   { background: linear-gradient(135deg, #00c73c, #009e30); }
+  
+  .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px); background: rgba(0,0,0,0.75); color: white; padding: 10px 20px; border-radius: 20px; font-size: 14px; opacity: 0; transition: all 0.3s; pointer-events: none; white-space: nowrap; z-index: 999; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.error { background: rgba(192,57,43,0.9); }
+
+  .loading-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.7); display: none; align-items: center; justify-content: center; z-index: 1000; flex-direction: column; gap: 10px; }
+  .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #e67e22; border-radius: 50%; animation: spin 1s linear infinite; }
+  @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+</style>
 </head>
 <body>
-  <div id="root"></div>
+<div class="title">📋 작업허가서 분석 <span style="font-size:13px;color:#e67e22;font-weight:normal;">Android/PC v1.5</span></div>
 
-  <script type="text/babel">
-    const { useState, useEffect } = React;
+<input type="file" id="pdfFileInput" accept="image/*" multiple>
+<input type="file" id="analyzeFileInput" accept="image/*">
 
-    // 사용자님의 GAS 웹 앱 URL을 여기에 입력하세요
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbyxMbFpCd_5YUPS8ZkcxbLL-LMC_Wqk0sTwPUSY5FZMo9iF95z_FeZ1vRXXrEWuEC4O/exec"; 
+<div class="upload-area">
+  <button class="upload-btn btn-pdf" onclick="document.getElementById('pdfFileInput').click()"><span class="icon">🖼️</span>PDF용 사진가져오기</button>
+  <button class="upload-btn btn-analyze" onclick="document.getElementById('analyzeFileInput').click()"><span class="icon">🖼️</span>허가서 사진가져오기</button>
+</div>
 
-    function App() {
-      const [images, setImages] = useState([]);
-      const [loading, setLoading] = useState(false);
-      const [result, setResult] = useState({
-        허가번호: "",
-        오더번호: "",
-        작업명: "",
-        작업일: "",
-        작업인원: ""
+<div id="pdf-section">
+  <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 8px;">
+    <div class="section-label" style="margin-bottom: 0;">PDF 사진 목록 <span id="pdf-count" style="color:#8e44ad"></span></div>
+    <div class="switch-container" style="margin-bottom: 0;"><span class="switch-label">스캔 모드(흑백)</span><label class="switch"><input type="checkbox" id="bw-toggle" checked><span class="slider"></span></label></div>
+  </div>
+  <div class="pdf-preview-grid" id="pdf-grid"><div class="pdf-add-btn" onclick="document.getElementById('pdfFileInput').click()">+</div></div>
+  <button id="makePdfBtn" onclick="makePdf()">📄 PDF 생성하기</button>
+</div>
+
+<div class="section-label">분석 결과</div>
+<div class="card">
+  <div class="row"><span class="row-label">허가번호</span><span class="row-value empty" id="v-permit">—</span><button class="copy-btn" onclick="copyVal('v-permit','허가번호',this)">복사</button></div>
+  <div class="row"><span class="row-label">오더번호</span><span class="row-value empty" id="v-order">—</span><button class="copy-btn" onclick="copyVal('v-order','오더번호',this)">복사</button></div>
+  <div class="row"><span class="row-label">작업명</span><span class="row-value empty" id="v-task">—</span><button class="copy-btn" onclick="copyVal('v-task','작업명',this)">복사</button></div>
+  <div class="row"><span class="row-label">작업일</span><span class="row-value empty" id="v-date">—</span><button class="copy-btn" onclick="copyVal('v-date','작업일',this)">복사</button></div>
+  <div class="row"><span class="row-label">작업인원</span><span class="row-value empty" id="v-people">—</span><button class="copy-btn" onclick="copyVal('v-people','작업인원',this)">복사</button></div>
+</div>
+<button class="copy-all-btn" onclick="copyAll()">📋 전체 내용 복사</button>
+
+<div class="app-buttons">
+  <a class="app-btn btn-safety" href="https://sahps.kr/safety/workpermitreg/"><span class="icon">🛡️</span>안전보건</a>
+  <a class="app-btn btn-kakao" href="kakaotalk://"><span class="icon">💬</span>카카오톡</a>
+  <a class="app-btn btn-band" href="bandapp://"><span class="icon">📣</span>네이버밴드</a>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div style="font-weight: bold; color: #e67e22;">AI 분석 중...</div>
+</div>
+
+<script>
+  const GAS_URL = "https://script.google.com/macros/s/AKfycbyxMbFpCd_5YUPS8ZkcxbLL-LMC_Wqk0sTwPUSY5FZMo9iF95z_FeZ1vRXXrEWuEC4O/exec";
+  let pdfImages = [];
+
+  // PDF 파일 입력 처리
+  document.getElementById('pdfFileInput').addEventListener('change', function(e) {
+    const files = Array.from(e.target.files);
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = ev => { pdfImages.push({ dataUrl: ev.target.result, mime: file.type }); renderPdfGrid(); };
+      reader.readAsDataURL(file);
+    });
+    this.value = '';
+  });
+
+  // 분석 파일 입력 처리
+  document.getElementById('analyzeFileInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      analyzeImage(ev.target.result, file.type);
+    };
+    reader.readAsDataURL(file);
+    this.value = '';
+  });
+
+  async function analyzeImage(dataUrl, mime) {
+    const overlay = document.getElementById('loadingOverlay');
+    overlay.style.display = 'flex';
+    
+    try {
+      const base64 = dataUrl.split(',')[1];
+      const response = await fetch(GAS_URL, {
+        method: 'POST',
+        body: JSON.stringify({ image: base64, mime: mime })
       });
-
-      const handleFileChange = (e) => {
-        const files = Array.from(e.target.files);
-        files.forEach(file => {
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            setImages(prev => [...prev, reader.result].slice(0, 6));
-          };
-          reader.readAsDataURL(file);
-        });
-      };
-
-      const removeImage = (index) => {
-        setImages(prev => prev.filter((_, i) => i !== index));
-      };
-
-      const analyze = async () => {
-        if (images.length === 0) {
-          alert("먼저 사진을 추가해주세요.");
-          return;
-        }
-        
-        setLoading(true);
-        try {
-          // GAS 코드가 단일 이미지('image')를 받으므로 첫 번째 이미지를 전송합니다.
-          const base64Data = images[0].split(',')[1];
-          const mimeType = images[0].split(',')[0].split(':')[1].split(';')[0];
-
-          const response = await fetch(GAS_URL, {
-            method: "POST",
-            body: JSON.stringify({ 
-              image: base64Data,
-              mime: mimeType
-            })
-          });
-          
-          if (!response.ok) throw new Error("GAS 요청 실패");
-          const data = await response.json();
-          
-          if (data.error) {
-            throw new Error(data.error);
-          }
-          
-          setResult(data);
-          
-        } catch (err) {
-          console.error(err);
-          alert("분석 중 오류가 발생했습니다: " + err.message);
-          // 테스트용 가짜 데이터 (동작 확인용)
-          setResult({
-            허가번호: "2024-ABC-123",
-            오더번호: "ORD-9999",
-            작업명: "배관 교체 및 용접 작업",
-            작업일: "2024-03-25",
-            작업인원: "3"
-          });
-        } finally {
-          setLoading(false);
-        }
-      };
-
-      const copyToClipboard = (text) => {
-        if (!text) return;
-        navigator.clipboard.writeText(text).then(() => {
-          alert("복사되었습니다.");
-        });
-      };
-
-      const copyAll = () => {
-        const allText = `허가번호: ${result.허가번호}\n오더번호: ${result.오더번호}\n작업명: ${result.작업명}\n작업일: ${result.작업일}\n작업인원: ${result.작업인원}`;
-        copyToClipboard(allText);
-      };
-
-      return (
-        <div className="max-w-md mx-auto">
-          <div className="title-card">작업허가서 분석 (PC/안드로이드)</div>
-
-          <div className="section-label">사진 첨부 (최대 6장)</div>
-          <div className="pdf-preview-grid">
-            {images.map((img, idx) => (
-              <div key={idx} className="pdf-thumb">
-                <img src={img} alt="preview" />
-                <button className="del-btn" onClick={() => removeImage(idx)}>×</button>
-              </div>
-            ))}
-            {images.length < 6 && (
-              <label className="pdf-add-btn">
-                +
-                <input type="file" accept="image/*" multiple hidden onChange={handleFileChange} />
-              </label>
-            )}
-          </div>
-
-          <div className="flex gap-2 mb-6">
-            <button onClick={analyze} disabled={loading} className="app-btn btn-analyze">
-              {loading ? "분석 중..." : "AI 분석 실행"}
-            </button>
-            <button onClick={copyAll} className="app-btn btn-copy-all">전체 복사</button>
-          </div>
-
-          <div className="section-label">분석 결과</div>
-          <div className="card">
-            <div className="row">
-              <div className="row-label">허가번호</div>
-              <div className={`row-value ${!result.허가번호 && 'empty'}`}>{result.허가번호 || "분석 전"}</div>
-              {result.허가번호 && <button className="copy-btn" onClick={() => copyToClipboard(result.허가번호)}>복사</button>}
-            </div>
-            <div className="row">
-              <div className="row-label">오더번호</div>
-              <div className={`row-value ${!result.오더번호 && 'empty'}`}>{result.오더번호 || "분석 전"}</div>
-              {result.오더번호 && <button className="copy-btn" onClick={() => copyToClipboard(result.오더번호)}>복사</button>}
-            </div>
-            <div className="row">
-              <div className="row-label">작업명</div>
-              <div className={`row-value ${!result.작업명 && 'empty'}`}>{result.작업명 || "분석 전"}</div>
-              {result.작업명 && <button className="copy-btn" onClick={() => copyToClipboard(result.작업명)}>복사</button>}
-            </div>
-            <div className="row">
-              <div className="row-label">작업일</div>
-              <div className={`row-value ${!result.작업일 && 'empty'}`}>{result.작업일 || "분석 전"}</div>
-              {result.작업일 && <button className="copy-btn" onClick={() => copyToClipboard(result.작업일)}>복사</button>}
-            </div>
-            <div className="row">
-              <div className="row-label">작업인원</div>
-              <div className={`row-value ${!result.작업인원 && 'empty'}`}>{result.작업인원 || "분석 전"}</div>
-              {result.작업인원 && <button className="copy-btn" onClick={() => copyToClipboard(result.작업인원)}>복사</button>}
-            </div>
-          </div>
-
-          {loading && (
-            <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
-              <div className="bg-white p-6 rounded-2xl shadow-xl flex flex-col items-center">
-                <div className="loader w-10 h-10 border-4 border-gray-200 rounded-full mb-4"></div>
-                <div className="text-sm font-bold text-gray-600">AI가 분석 중입니다...</div>
-              </div>
-            </div>
-          )}
-        </div>
-      );
+      
+      if (!response.ok) throw new Error("분석 요청 실패");
+      
+      const data = await response.json();
+      if (data.error) throw new Error(data.error);
+      
+      setVal('v-permit', data.허가번호);
+      setVal('v-order', data.오더번호);
+      setVal('v-task', data.작업명);
+      setVal('v-date', data.작업일);
+      setVal('v-people', data.작업인원);
+      
+      showToast('분석 완료!');
+    } catch (e) {
+      console.error(e);
+      showToast('오류: ' + e.message, true);
+    } finally {
+      overlay.style.display = 'none';
     }
+  }
 
-    const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(<App />);
-  </script>
+  document.getElementById('bw-toggle').addEventListener('change', renderPdfGrid);
+
+  function renderPdfGrid() {
+    const grid = document.getElementById('pdf-grid');
+    const isBW = document.getElementById('bw-toggle').checked;
+    grid.innerHTML = '';
+    pdfImages.forEach((img, i) => {
+      const div = document.createElement('div');
+      div.className = 'pdf-thumb';
+      const filterStyle = isBW ? 'filter: grayscale(100%) contrast(150%) brightness(110%);' : '';
+      div.innerHTML = `<img src="${img.dataUrl}" style="${filterStyle} transition: filter 0.3s;"><button class="del-btn" onclick="removePdfImg(${i})">×</button>`;
+      grid.appendChild(div);
+    });
+    const add = document.createElement('div');
+    add.className = 'pdf-add-btn'; add.textContent = '+'; add.onclick = () => document.getElementById('pdfFileInput').click();
+    grid.appendChild(add);
+    document.getElementById('pdf-section').style.display = pdfImages.length ? 'block' : 'none';
+    document.getElementById('pdf-count').textContent = pdfImages.length + '장';
+  }
+
+  function removePdfImg(i) { 
+    pdfImages.splice(i, 1); 
+    if (!pdfImages.length) document.getElementById('pdf-section').style.display = 'none'; 
+    else renderPdfGrid(); 
+  }
+
+  function processImageBW(dataUrl) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = img.naturalWidth; canvas.height = img.naturalHeight;
+        ctx.drawImage(img, 0, 0);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imageData.data;
+        for (let i = 0; i < data.length; i += 4) {
+          let v = 0.2126 * data[i] + 0.7152 * data[i+1] + 0.0722 * data[i+2];
+          v = (v - 128) * 1.4 + 128 + 20;
+          data[i] = data[i+1] = data[i+2] = v < 0 ? 0 : (v > 255 ? 255 : v);
+        }
+        ctx.putImageData(imageData, 0, 0);
+        resolve(canvas.toDataURL('image/jpeg', 0.8));
+      };
+      img.onerror = () => resolve(dataUrl);
+      img.src = dataUrl;
+    });
+  }
+
+  async function makePdf() {
+    if (!pdfImages.length) return;
+    const btn = document.getElementById('makePdfBtn');
+    const isBW = document.getElementById('bw-toggle').checked;
+    btn.disabled = true; btn.textContent = '⏳ 생성 중...';
+    try {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      for (let i = 0; i < pdfImages.length; i++) {
+        if (i > 0) doc.addPage();
+        let url = pdfImages[i].dataUrl;
+        if (isBW) url = await processImageBW(url);
+        const imgEl = new Image();
+        await new Promise(res => { imgEl.onload = res; imgEl.src = url; });
+        const ratio = Math.min(210 / imgEl.width, 297 / imgEl.height);
+        const w = imgEl.width * ratio, h = imgEl.height * ratio;
+        doc.addImage(url, 'JPEG', (210 - w) / 2, (297 - h) / 2, w, h, undefined, 'NONE');
+      }
+      const now = new Date();
+      doc.save(`permit_${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}.pdf`);
+      showToast('PDF 저장 완료!');
+    } catch(e) { showToast('오류: ' + e.message, true); } finally { btn.disabled = false; btn.textContent = '📄 PDF 생성하기'; }
+  }
+
+  function setVal(id, val) {
+    const el = document.getElementById(id);
+    if (val && val !== 'null' && val !== '') { 
+      el.textContent = val; 
+      el.classList.remove('empty'); 
+    } else {
+      el.textContent = '—';
+      el.classList.add('empty');
+    }
+  }
+
+  function showToast(msg, isErr) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.className = 'toast show' + (isErr ? ' error' : '');
+    setTimeout(() => t.classList.remove('show'), 2000);
+  }
+
+  function copyVal(id, label, btn) {
+    const val = document.getElementById(id).textContent;
+    if (val === '—') return;
+    navigator.clipboard.writeText(val).then(() => showToast('복사 완료')).catch(() => {
+      const ta = document.createElement('textarea'); ta.value = val; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); showToast('복사 완료');
+    });
+  }
+
+  function copyAll() {
+    const fields = [['v-permit','허가번호'],['v-order','오더번호'],['v-task','작업명'],['v-date','작업일'],['v-people','작업인원']];
+    const lines = fields.map(([id, label]) => label + ' : ' + document.getElementById(id).textContent).join('\n');
+    navigator.clipboard.writeText(lines).then(() => showToast('전체 복사 완료'));
+  }
+</script>
 </body>
 </html>
