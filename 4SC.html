@@ -255,7 +255,8 @@
           data[i] = data[i + 1] = data[i + 2] = finalVal;
         }
         ctx.putImageData(imageData, 0, 0);
-        resolve(canvas.toDataURL('image/jpeg', 1.0));
+        // 적절한 화질(0.8)로 내보내어 용량 최적화
+        resolve(canvas.toDataURL('image/jpeg', 0.8));
       };
       img.src = dataUrl;
     });
