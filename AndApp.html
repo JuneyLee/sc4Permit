@@ -46,16 +46,17 @@
     const { useState, useEffect } = React;
 
     // 사용자님의 GAS 웹 앱 URL을 여기에 입력하세요
-    const GAS_URL = "YOUR_GAS_WEBAPP_URL_HERE"; 
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbyxMbFpCd_5YUPS8ZkcxbLL-LMC_Wqk0sTwPUSY5FZMo9iF95z_FeZ1vRXXrEWuEC4O/exec"; 
 
     function App() {
       const [images, setImages] = useState([]);
       const [loading, setLoading] = useState(false);
       const [result, setResult] = useState({
-        workType: "",
-        location: "",
-        period: "",
-        safety: ""
+        허가번호: "",
+        오더번호: "",
+        작업명: "",
+        작업일: "",
+        작업인원: ""
       });
 
       const handleFileChange = (e) => {
@@ -81,26 +82,37 @@
         
         setLoading(true);
         try {
-          // GAS로 요청을 보내는 방식 (원래 의도하신 방식)
-          // 만약 GAS가 준비되지 않았다면, 임시로 로컬 분석 로직을 사용할 수 있습니다.
+          // GAS 코드가 단일 이미지('image')를 받으므로 첫 번째 이미지를 전송합니다.
+          const base64Data = images[0].split(',')[1];
+          const mimeType = images[0].split(',')[0].split(':')[1].split(';')[0];
+
           const response = await fetch(GAS_URL, {
             method: "POST",
-            body: JSON.stringify({ images: images.map(img => img.split(',')[1]) })
+            body: JSON.stringify({ 
+              image: base64Data,
+              mime: mimeType
+            })
           });
           
           if (!response.ok) throw new Error("GAS 요청 실패");
           const data = await response.json();
+          
+          if (data.error) {
+            throw new Error(data.error);
+          }
+          
           setResult(data);
           
         } catch (err) {
           console.error(err);
-          alert("분석 중 오류가 발생했습니다. GAS URL 설정을 확인해주세요.");
+          alert("분석 중 오류가 발생했습니다: " + err.message);
           // 테스트용 가짜 데이터 (동작 확인용)
           setResult({
-            workType: "일반작업",
-            location: "A구역 2층",
-            period: "2024-03-25 ~ 2024-03-26",
-            safety: "안전모 착용 필수, 추락 방지망 설치 확인"
+            허가번호: "2024-ABC-123",
+            오더번호: "ORD-9999",
+            작업명: "배관 교체 및 용접 작업",
+            작업일: "2024-03-25",
+            작업인원: "3"
           });
         } finally {
           setLoading(false);
@@ -108,13 +120,14 @@
       };
 
       const copyToClipboard = (text) => {
+        if (!text) return;
         navigator.clipboard.writeText(text).then(() => {
           alert("복사되었습니다.");
         });
       };
 
       const copyAll = () => {
-        const allText = `작업종류: ${result.workType}\n작업장소: ${result.location}\n작업기간: ${result.period}\n안전조치: ${result.safety}`;
+        const allText = `허가번호: ${result.허가번호}\n오더번호: ${result.오더번호}\n작업명: ${result.작업명}\n작업일: ${result.작업일}\n작업인원: ${result.작업인원}`;
         copyToClipboard(allText);
       };
 
@@ -148,24 +161,29 @@
           <div className="section-label">분석 결과</div>
           <div className="card">
             <div className="row">
-              <div className="row-label">작업종류</div>
-              <div className={`row-value ${!result.workType && 'empty'}`}>{result.workType || "분석 전"}</div>
-              {result.workType && <button className="copy-btn" onClick={() => copyToClipboard(result.workType)}>복사</button>}
+              <div className="row-label">허가번호</div>
+              <div className={`row-value ${!result.허가번호 && 'empty'}`}>{result.허가번호 || "분석 전"}</div>
+              {result.허가번호 && <button className="copy-btn" onClick={() => copyToClipboard(result.허가번호)}>복사</button>}
             </div>
             <div className="row">
-              <div className="row-label">작업장소</div>
-              <div className={`row-value ${!result.location && 'empty'}`}>{result.location || "분석 전"}</div>
-              {result.location && <button className="copy-btn" onClick={() => copyToClipboard(result.location)}>복사</button>}
+              <div className="row-label">오더번호</div>
+              <div className={`row-value ${!result.오더번호 && 'empty'}`}>{result.오더번호 || "분석 전"}</div>
+              {result.오더번호 && <button className="copy-btn" onClick={() => copyToClipboard(result.오더번호)}>복사</button>}
             </div>
             <div className="row">
-              <div className="row-label">작업기간</div>
-              <div className={`row-value ${!result.period && 'empty'}`}>{result.period || "분석 전"}</div>
-              {result.period && <button className="copy-btn" onClick={() => copyToClipboard(result.period)}>복사</button>}
+              <div className="row-label">작업명</div>
+              <div className={`row-value ${!result.작업명 && 'empty'}`}>{result.작업명 || "분석 전"}</div>
+              {result.작업명 && <button className="copy-btn" onClick={() => copyToClipboard(result.작업명)}>복사</button>}
             </div>
             <div className="row">
-              <div className="row-label">안전조치</div>
-              <div className={`row-value ${!result.safety && 'empty'}`}>{result.safety || "분석 전"}</div>
-              {result.safety && <button className="copy-btn" onClick={() => copyToClipboard(result.safety)}>복사</button>}
+              <div className="row-label">작업일</div>
+              <div className={`row-value ${!result.작업일 && 'empty'}`}>{result.작업일 || "분석 전"}</div>
+              {result.작업일 && <button className="copy-btn" onClick={() => copyToClipboard(result.작업일)}>복사</button>}
+            </div>
+            <div className="row">
+              <div className="row-label">작업인원</div>
+              <div className={`row-value ${!result.작업인원 && 'empty'}`}>{result.작업인원 || "분석 전"}</div>
+              {result.작업인원 && <button className="copy-btn" onClick={() => copyToClipboard(result.작업인원)}>복사</button>}
             </div>
           </div>
 
