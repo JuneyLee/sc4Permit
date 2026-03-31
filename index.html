@@ -3,21 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>작업허가서 분석 시스템</title>
-    <script>
-        const ua = navigator.userAgent;
-        const isIOS = /iPhone|iPad|iPod/i.test(ua) || (/CriOS|FxiOS|OPiOS/i.test(ua));
-        
-        // GAS 웹 앱의 기본 주소 (배포 후 주소로 꼭 바꿔주세요!)
-        const GAS_BASE_URL = "https://script.google.com/macros/s/AKfycbyxMbFpCd_5YUPS8ZkcxbLL-LMC_Wqk0sTwPUSY5FZMo9iF95z_FeZ1vRXXrEWuEC4O/exec";
-
-        if (isIOS) {
-            // 아이폰 사용자 -> 4SC 페이지로 이동
-            window.top.location.href = GAS_BASE_URL + "?page=4SC";
-        } else {
-            // 안드로이드/PC 사용자 -> AndApp 페이지로 이동
-            window.top.location.href = GAS_BASE_URL + "?page=AndApp";
+    <title>작업허가서 분석 시스템 - 기기 판별</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f7f9;
+            color: #333;
         }
+        .loader-container {
+            text-align: center;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #007bff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+    <script>
+        /**
+         * 기기를 판별하여 적절한 페이지로 리다이렉트합니다.
+         */
+        function redirectByDevice() {
+            const ua = navigator.userAgent.toLowerCase();
+            const GAS_BASE_URL = "https://script.google.com/macros/s/AKfycbyxMbFpCd_5YUPS8ZkcxbLL-LMC_Wqk0sTwPUSY5FZMo9iF95z_FeZ1vRXXrEWuEC4O/exec";
+            
+            // 1. 기본적인 iOS 키워드 체크
+            const isIpad = ua.indexOf("ipad") > -1;
+            const isIphone = ua.indexOf("iphone") > -1;
+            const isIpod = ua.indexOf("ipod") > -1;
+            
+            // 2. iOS 13 이상 아이패드에서 "Macintosh"로 표시되는 경우 대응
+            const isMacWithTouch = (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+            
+            // 3. 최종 iOS 여부 확인
+            const isIOS = isIphone || isIpad || isIpod || isMacWithTouch;
+            
+            // 4. 리다이렉트 처리
+            let targetUrl = "";
+            if (isIOS) {
+                // 아이폰/아이패드 사용자
+                targetUrl = GAS_BASE_URL + "?page=4SC";
+            } else {
+                // 안드로이드/PC 사용자
+                targetUrl = GAS_BASE_URL + "?page=AndApp";
+            }
+
+            // 카카오톡 내에서 window.top.location.href가 작동하지 않을 수 있으므로 
+            // location.replace를 함께 고려합니다.
+            try {
+                window.top.location.href = targetUrl;
+            } catch (e) {
+                window.location.replace(targetUrl);
+            }
+        }
+
+        window.onload = function() {
+            // 접속 시 약간의 지연 후 리다이렉트 실행 (필요 시)
+            setTimeout(redirectByDevice, 500);
+        };
     </script>
 </head>
 <body>
+    <div class="loader-container">
+        <div class="spinner"></div>
+        <p>기기 환경을 확인 중입니다...</p>
+        <p style="font-size: 0.8rem; color: #888;">잠시만 기다려 주세요.</p>
+    </div>
+</body>
+</html>
